@@ -328,11 +328,19 @@ def build_sd_subscribe_nack(service_id: int, instance_id: int, eventgroup_id: in
 # ── 内部工具 ──────────────────────────────────────────────────────────────────
 
 def _extract_payload(pkt: SOMEIP) -> bytes:
-    """从 scapy SOMEIP 对象提取原始 payload 字节。"""
-    if pkt.data:
-        return b"".join(bytes(d) for d in pkt.data)
+    """从 scapy SOMEIP 对象提取原始 payload 字节。
+
+    优先检查 scapy payload 链（SOMEIP(...) / Raw(data) 构造方式），
+    再检查 PacketListField data（解析收到的报文时填充）。
+    """
+    # 优先：payload 链（自行构造的 SOMEIP() / Raw(data)）
     if pkt.payload and pkt.payload.__class__.__name__ not in ("NoPayload",):
         return bytes(pkt.payload)
+    # 备选：PacketListField data（scapy 解析外来字节时使用）
+    if pkt.data:
+        data_bytes = b"".join(bytes(d) for d in pkt.data)
+        if data_bytes:
+            return data_bytes
     return b""
 
 
