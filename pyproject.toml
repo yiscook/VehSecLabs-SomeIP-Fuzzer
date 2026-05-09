@@ -41,6 +41,7 @@ dev = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-v --cov=someip_fuzzer --cov-report=term-missing"
+asyncio_mode = "auto"
 
 [tool.ruff]
 line-length = 100

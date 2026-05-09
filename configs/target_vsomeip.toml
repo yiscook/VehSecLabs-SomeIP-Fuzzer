@@ -1,0 +1,26 @@
+[target]
+name = "vsomeip 默认靶机"
+ip = "192.168.81.128"
+port = 30509
+transport = "udp"
+interface = "VMnet8"
+
+[sd]
+multicast = "224.224.224.245"
+port = 30490
+
+[[services]]
+service_id = 0x1234
+instance_id = 0x0001
+major_version = 1
+minor_version = 0
+methods = [0x8001, 0x8002]
+events = [0x0100]
+
+[[services]]
+service_id = 0xA994
+instance_id = 0x0001
+major_version = 1
+minor_version = 0
+methods = [0x0100, 0x0101]
+events = []
