@@ -3,9 +3,11 @@
 ```yaml
 phase: 0
 title: 项目初始化
-status: Not Started
+status: Complete
 recommended_model: Haiku 4.5
-acceptance_passed: false
+acceptance_passed: true
+started_at: 2026-05-10
+completed_at: 2026-05-10
 git_tag: v0.0.0
 ```
 
@@ -191,15 +193,25 @@ uv run someip-fuzzer --help
 
 ## 0.6 验收清单
 
-- [ ] `uv sync` 在干净环境成功执行
-- [ ] `uv run pytest` 通过（包含 `test_smoke.py`）
-- [ ] `uv run someip-fuzzer` 能正常启动并打印 banner
-- [ ] `git status` 干净，无未追踪文件（除了 results/）
-- [ ] `git log` 至少 5 条原子提交
-- [ ] 远程 https://github.com/yiscook/VehSecLabs-SomeIP-Fuzzer 同步
+- [x] `uv sync` 在干净环境成功执行
+- [x] `uv run pytest` 通过（包含 `test_smoke.py`）
+- [x] `uv run someip-fuzzer` 能正常启动并打印 banner
+- [x] `git status` 干净，无未追踪文件（除了 results/）
+- [x] `git log` 至少 5 条原子提交（共 6 条）
+- [x] 远程 https://github.com/yiscook/VehSecLabs-SomeIP-Fuzzer 同步
 
 ---
 
 ## 0.7 问题记录
 
-（验收失败时在此追加）
+**2026-05-10 问题：中文路径 GBK 编码冲突**
+
+Windows 中文系统 GBK locale 下，Python site 模块读 `.pth` 文件时用 GBK 解码，但 uv 写的 `.pth` 是 UTF-8，导致 `init_import_site` 崩溃。
+
+修复方案：
+1. `setx PYTHONUTF8 1` — 永久设置用户环境变量（新 Terminal 后生效，uv sync 后可正常读 UTF-8 `.pth`）
+2. 当次会话临时修复：PowerShell 将 `.pth` 文件重写为 GBK 编码：
+   ```powershell
+   $gbk = [System.Text.Encoding]::GetEncoding(936)
+   [System.IO.File]::WriteAllText($pthFile, $content, $gbk)
+   ```
