@@ -95,6 +95,52 @@ class BaseMutator(ABC):
                     f"{cls.__name__} 必须定义类变量 {required!r}"
                 )
 
+    # ── 子类构造 MutationResult 的帮助方法（统一模板，避免 93 处样板代码） ──
+
+    def _make_result(
+        self,
+        mutated: SomeIpPacket,
+        seed_packet_id: str | None = None,
+        **metadata: object,
+    ) -> MutationResult:
+        """合法变异：从 mutated dataclass 构造 MutationResult。
+
+        ``raw_bytes`` 通过 ``mutated.to_bytes()`` 序列化得到；
+        ``packet`` 字段填充 mutated 本身，便于 GUI/反馈引擎查看。
+        """
+        return MutationResult(
+            raw_bytes=mutated.to_bytes(),
+            packet=mutated,
+            mutator_name=self.name,
+            layer=self.layer,
+            target_field=self.target_field,
+            strategy=self.strategy,
+            seed_packet_id=seed_packet_id,
+            metadata=dict(metadata),
+        )
+
+    def _make_raw_result(
+        self,
+        raw_bytes: bytes,
+        seed_packet_id: str | None = None,
+        **metadata: object,
+    ) -> MutationResult:
+        """畸形变异：直接发送 raw_bytes，``packet`` 字段填 None。
+
+        用于 Length 字段溢出 / 字节序混淆 / Header 字节级损坏等
+        无法回到合法 dataclass 的场景。
+        """
+        return MutationResult(
+            raw_bytes=raw_bytes,
+            packet=None,
+            mutator_name=self.name,
+            layer=self.layer,
+            target_field=self.target_field,
+            strategy=self.strategy,
+            seed_packet_id=seed_packet_id,
+            metadata=dict(metadata),
+        )
+
 
 # ── 注册系统 ──────────────────────────────────────────────────────────────────
 
