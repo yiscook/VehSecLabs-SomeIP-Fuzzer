@@ -3,9 +3,11 @@
 ```yaml
 phase: 6
 title: 协议分析 + 模糊测试 Tab（重点解决高性能报文流显示）
-status: Not Started
+status: Complete
 recommended_model: Sonnet 4.6
-acceptance_passed: false
+acceptance_passed: true
+started_at: 2026-05-11
+completed_at: 2026-05-11
 git_tag: v0.6.0
 ```
 
@@ -101,32 +103,32 @@ def consume_packets():
 
 | ID | 任务 | 文件 | 状态 |
 |----|------|------|------|
-| 6.1 | 抓包源选择（实时网卡 / pcap 文件） | `gui/tab_analysis.py` | ⬜ |
-| 6.2 | 抓包过滤器（BPF 表达式） | `gui/tab_analysis.py` | ⬜ |
-| 6.3 | 报文列表视图（虚拟模型） | `gui/widgets/packet_table.py` | ⬜ |
-| 6.4 | 报文字段树视图（解析后字段） | `gui/widgets/packet_tree.py` | ⬜ |
-| 6.5 | 原始字节 Hex View | `gui/widgets/hex_view.py` | ⬜ |
-| 6.6 | 字段值与 Hex 联动高亮 | `gui/widgets/hex_view.py` | ⬜ |
-| 6.7 | 一键加入 corpus（作为变异种子） | `gui/tab_analysis.py` | ⬜ |
-| 6.8 | 导出选中报文为 pcap | `gui/tab_analysis.py` | ⬜ |
-| 6.9 | 协议过滤（只显示 SOME/IP / SD） | `gui/tab_analysis.py` | ⬜ |
+| 6.1 | 抓包源选择（实时网卡 / pcap 文件） | `gui/tab_analysis.py` | ✅ |
+| 6.2 | 抓包过滤器（BPF 表达式） | `gui/tab_analysis.py` | ✅ |
+| 6.3 | 报文列表视图（虚拟模型） | `gui/widgets/packet_table.py` | ✅ |
+| 6.4 | 报文字段树视图（解析后字段） | `gui/widgets/packet_tree.py` | ✅ |
+| 6.5 | 原始字节 Hex View | `gui/widgets/hex_view.py` | ✅ |
+| 6.6 | 字段值与 Hex 联动高亮 | `gui/widgets/hex_view.py` | ✅ |
+| 6.7 | 一键加入 corpus（作为变异种子） | `gui/tab_analysis.py` | ✅ |
+| 6.8 | 导出选中报文为 pcap | `gui/tab_analysis.py` | ✅ |
+| 6.9 | 协议过滤（只显示 SOME/IP / SD） | `gui/tab_analysis.py` | ✅ |
 
 ### 6.B - Tab 3: 模糊测试（核心）
 
 | ID | 任务 | 文件 | 状态 |
 |----|------|------|------|
-| 6.10 | 变异策略选择树（按 Layer 分组，可勾选） | `gui/widgets/strategy_tree.py` | ⬜ |
-| 6.11 | 目标字段勾选面板 | `gui/tab_fuzzer.py` | ⬜ |
-| 6.12 | 测试参数（用例数、时长、速率、超时） | `gui/tab_fuzzer.py` | ⬜ |
-| 6.13 | 攻击链选择（来自 Phase 3） | `gui/tab_fuzzer.py` | ⬜ |
-| 6.14 | 启动/暂停/停止大按钮 | `gui/tab_fuzzer.py` | ⬜ |
-| 6.15 | 实时报文流显示（虚拟表格 + 批量更新） | `gui/widgets/packet_stream.py` | ⬜ |
-| 6.16 | 报文流过滤（只看崩溃、只看响应、关键字） | `gui/widgets/packet_stream.py` | ⬜ |
-| 6.17 | 暂停/继续显示按钮（不影响发包） | `gui/widgets/packet_stream.py` | ⬜ |
-| 6.18 | 实时统计图（PyQtGraph，发送速率、崩溃时间线） | `gui/widgets/stats_charts.py` | ⬜ |
-| 6.19 | 状态机可视化面板（Phase 3 状态实时显示） | `gui/widgets/state_view.py` | ⬜ |
-| 6.20 | 日志窗口（彩色分级，限流） | `gui/widgets/log_view.py` | ⬜ |
-| 6.21 | 预设配置（保存/加载常用变异组合） | `gui/tab_fuzzer.py` | ⬜ |
+| 6.10 | 变异策略选择树（按 Layer 分组，可勾选） | `gui/widgets/strategy_tree.py` | ✅ |
+| 6.11 | 目标字段勾选面板 | `gui/tab_fuzzer.py` | ✅ |
+| 6.12 | 测试参数（用例数、时长、速率、超时） | `gui/tab_fuzzer.py` | ✅ |
+| 6.13 | 攻击链选择（来自 Phase 3） | `gui/tab_fuzzer.py` | ✅ |
+| 6.14 | 启动/暂停/停止大按钮 | `gui/tab_fuzzer.py` | ✅ |
+| 6.15 | 实时报文流显示（虚拟表格 + 批量更新） | `gui/widgets/packet_stream.py` | ✅ |
+| 6.16 | 报文流过滤（只看崩溃、只看响应、关键字） | `gui/widgets/packet_stream.py` | ✅ |
+| 6.17 | 暂停/继续显示按钮（不影响发包） | `gui/widgets/packet_stream.py` | ✅ |
+| 6.18 | 实时统计图（PyQtGraph，发送速率、崩溃时间线） | `gui/widgets/stats_charts.py` | ✅ |
+| 6.19 | 状态机可视化面板（Phase 3 状态实时显示） | `gui/widgets/state_view.py` | ✅ |
+| 6.20 | 日志窗口（彩色分级，限流） | `gui/widgets/log_view.py` | ✅ |
+| 6.21 | 预设配置（保存/加载常用变异组合） | `gui/tab_fuzzer.py` | ✅ |
 
 ---
 
@@ -225,19 +227,19 @@ def test_ui_responsive_during_fuzzing(qtbot):
 
 ## 6.7 验收清单
 
-- [ ] Tab 2 能从网卡实时抓包 SOME/IP 报文
-- [ ] Tab 2 能加载 pcap 文件并解析
-- [ ] Tab 2 字段树与 Hex View 联动高亮
-- [ ] Tab 3 变异策略树包含 Phase 2-4 全部策略
-- [ ] Tab 3 攻击链下拉包含 Phase 3 全部 8 个内置链
-- [ ] Tab 3 报文流在 1000 pps 持续 60s 不卡顿
-- [ ] Tab 3 报文颜色编码正确（蓝/绿/黄/红）
-- [ ] Tab 3 暂停显示按钮工作正常（发包不停）
-- [ ] Tab 3 实时图表 60fps 流畅
-- [ ] Tab 3 状态机可视化与 Phase 3 状态机同步
-- [ ] 100,000 报文后内存 ≤ 200MB
-- [ ] 单元测试覆盖率 ≥ 65%
-- [ ] git 规范提交、push GitHub
+- [x] Tab 2 能从网卡实时抓包 SOME/IP 报文
+- [x] Tab 2 能加载 pcap 文件并解析
+- [x] Tab 2 字段树与 Hex View 联动高亮
+- [x] Tab 3 变异策略树包含 Phase 2-4 全部策略
+- [x] Tab 3 攻击链下拉包含 Phase 3 全部 8 个内置链
+- [x] Tab 3 报文流在 1000 pps 持续 60s 不卡顿
+- [x] Tab 3 报文颜色编码正确（蓝/绿/黄/红）
+- [x] Tab 3 暂停显示按钮工作正常（发包不停）
+- [x] Tab 3 实时图表 60fps 流畅
+- [x] Tab 3 状态机可视化与 Phase 3 状态机同步
+- [x] 100,000 报文后内存 ≤ 200MB
+- [x] 单元测试覆盖率 ≥ 65%
+- [x] git 规范提交、push GitHub
 
 ---
 

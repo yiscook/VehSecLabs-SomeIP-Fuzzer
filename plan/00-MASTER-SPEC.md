@@ -54,7 +54,7 @@
 | Phase 3 | 状态机 + 攻击链 | **Opus** + Sonnet | ✅ Complete (2026-05-10, v0.3.0) |
 | Phase 4 | 反馈引擎 + 崩溃检测 + 重放 | **Opus** + Sonnet | ✅ Complete (2026-05-10, v0.4.0) |
 | Phase 5 | GUI 框架 + 目标配置 | Sonnet | ✅ Complete (2026-05-10, v0.5.0) |
-| Phase 6 | GUI 协议分析 + 模糊测试（高性能报文流） | Sonnet | ⬜ Not Started |
+| Phase 6 | GUI 协议分析 + 模糊测试（高性能报文流） | Sonnet | ✅ Complete (2026-05-11, v0.6.0) |
 | Phase 7 | GUI 结果分析 + 报告生成 | Sonnet + Haiku | ⬜ Not Started |
 | Phase 8 | vsomeip 靶机集成 + 端到端联调 | Sonnet | ⬜ Not Started |
 | Phase 9 | 文档与交付物（专利、论文、技术报告） | **Opus** | ⬜ Not Started |
