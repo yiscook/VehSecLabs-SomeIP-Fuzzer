@@ -21,6 +21,8 @@ from someip_fuzzer.gui.bridge import GuiBridge
 from someip_fuzzer.gui.dialogs.about import AboutDialog
 from someip_fuzzer.gui.tab_analysis import AnalysisTab
 from someip_fuzzer.gui.tab_fuzzer import FuzzerTab
+from someip_fuzzer.gui.tab_report import ReportTab
+from someip_fuzzer.gui.tab_results import ResultsTab
 from someip_fuzzer.gui.tab_target import TargetTab
 from someip_fuzzer.gui.widgets.project_tree import ProjectTreeDock
 
@@ -88,11 +90,13 @@ class MainWindow(QMainWindow):
         self.tab_target = TargetTab()
         self.tab_analysis = AnalysisTab()
         self.tab_fuzzer = FuzzerTab(bridge=self.bridge)
+        self.tab_results = ResultsTab()
+        self.tab_report = ReportTab()
         self.tab_widget.addTab(self.tab_target, "🎯  目标配置")
         self.tab_widget.addTab(self.tab_analysis, "🔍  协议分析")
         self.tab_widget.addTab(self.tab_fuzzer, "⚡  模糊测试")
-        self.tab_widget.addTab(_PlaceholderTab("结果分析"), "📊  结果分析")
-        self.tab_widget.addTab(_PlaceholderTab("报告生成"), "📄  报告生成")
+        self.tab_widget.addTab(self.tab_results, "📊  结果分析")
+        self.tab_widget.addTab(self.tab_report, "📄  报告生成")
 
         self.setCentralWidget(self.tab_widget)
 
