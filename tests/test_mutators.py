@@ -1,9 +1,9 @@
-"""变异引擎测试：Layer 1 + Layer 2 全部变异器的基础验证。
+"""变异引擎测试：Layer 1 + Layer 2 + Layer 3 全部变异器的基础验证。
 
 测试策略：
 - 每个变异器执行 mutate() 后验证 MutationResult 的基本约束
 - 字符串语义变异器额外验证 payload 包含预期注入内容
-- 注册系统验证总数量是否达到 93 种（53 L1 + 40 L2）
+- 注册系统验证总数量是否达到 105 种（53 L1 + 40 L2 + 12 L3）
 - MutationScheduler 端到端调度验证
 """
 
@@ -53,9 +53,9 @@ def empty_payload_seed() -> SomeIpPacket:
 
 
 def test_registry_total_count() -> None:
-    """Phase 2 完成后应有 93 种已注册变异器（53 Layer1 + 40 Layer2）。"""
-    assert len(MUTATOR_REGISTRY) == 93, (
-        f"期望 93 种变异器，实际 {len(MUTATOR_REGISTRY)} 种。"
+    """Phase 3 完成后应有 105 种已注册变异器（53 L1 + 40 L2 + 12 L3）。"""
+    assert len(MUTATOR_REGISTRY) == 105, (
+        f"期望 105 种变异器，实际 {len(MUTATOR_REGISTRY)} 种。"
         f"已注册：{sorted(MUTATOR_REGISTRY)}"
     )
 
@@ -88,7 +88,7 @@ def test_mutate_returns_valid_result(
     assert isinstance(result.raw_bytes, bytes), f"{name}: raw_bytes 不是 bytes"
     assert len(result.raw_bytes) >= 16, f"{name}: raw_bytes 长度 {len(result.raw_bytes)} < 16"
     assert result.mutator_name == name, f"{name}: mutator_name 不匹配"
-    assert result.layer in (1, 2), f"{name}: layer={result.layer} 不合法"
+    assert result.layer in (1, 2, 3), f"{name}: layer={result.layer} 不合法"
     assert result.strategy, f"{name}: strategy 为空"
 
 

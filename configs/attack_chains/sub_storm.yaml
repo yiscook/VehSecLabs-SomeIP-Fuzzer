@@ -1,0 +1,31 @@
+id: AC-005
+name: 订阅风暴攻击链
+description: >
+  高频交替发送 SubscribeEventgroup 和 StopSubscribeEventgroup（TTL=0），
+  模拟订阅风暴，测试服务端事件组状态表的并发更新稳定性。
+severity: medium
+cvss: 6.5
+
+steps:
+  - id: rapid_subscribe_cycle
+    action: send
+    template: sd_subscribe
+    params:
+      service_id: "0x1234"
+      instance_id: "0x0001"
+      eventgroup_id: "0x0001"
+      addr: "127.0.0.1"
+      port: 30510
+    repeat: 300
+    delay_ms: 1
+
+  - id: unknown_eventgroup_storm
+    action: mutate
+    params:
+      service_id: "0x1234"
+      layer: 3
+    repeat: 100
+    delay_ms: 2
+
+success_criteria:
+  rapid_subscribe_cycle_completed: true

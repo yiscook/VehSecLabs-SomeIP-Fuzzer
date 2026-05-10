@@ -25,3 +25,4 @@ from someip_fuzzer.core.mutators import layer1_payload   # noqa: F401
 from someip_fuzzer.core.mutators import layer2_semantic  # noqa: F401
 
 from someip_fuzzer.core.mutators import layer2_sd    # noqa: F401
+from someip_fuzzer.core.mutators import layer3_state  # noqa: F401

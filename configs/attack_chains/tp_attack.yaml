@@ -1,0 +1,62 @@
+id: AC-007
+name: TP 分段重组攻击链
+description: >
+  发送乱序、缺失、重叠的 SOME/IP-TP 分段报文，
+  测试接收端 TP 重组缓冲区的边界处理（越界写、超时泄漏、重叠覆盖）。
+  步骤最多（6步），CVSS 8.5。
+severity: high
+cvss: 8.5
+
+steps:
+  - id: send_tp_first_fragment
+    action: mutate
+    params:
+      service_id: "0x1234"
+      layer: 2
+    repeat: 1
+
+  - id: send_tp_flag_no_offset
+    action: mutate
+    params:
+      service_id: "0x1234"
+      layer: 2
+    repeat: 5
+    delay_ms: 10
+
+  - id: send_oversized_tp
+    action: mutate
+    params:
+      service_id: "0x1234"
+      layer: 1
+    repeat: 10
+    delay_ms: 5
+
+  - id: send_duplicate_offset
+    action: mutate
+    params:
+      service_id: "0x1234"
+      layer: 2
+    repeat: 5
+    delay_ms: 10
+
+  - id: send_missing_last_fragment
+    action: send
+    template: request
+    params:
+      service_id: "0x1234"
+      method_id: "0x0001"
+      payload: "AABBCCDD"
+    repeat: 3
+    delay_ms: 20
+
+  - id: flood_reassembly_buffer
+    action: mutate
+    params:
+      service_id: "0x1234"
+      layer: 1
+    repeat: 100
+    delay_ms: 2
+
+success_criteria:
+  send_tp_first_fragment_completed: true
+  flood_reassembly_buffer_completed: true

