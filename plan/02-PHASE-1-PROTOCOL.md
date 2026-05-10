@@ -23,18 +23,18 @@ git_tag: v0.1.0
 
 | ID | 任务 | 文件 | 状态 |
 |----|------|------|------|
-| 1.1 | SOME/IP 报文构造封装 | `core/protocol.py` | ⬜ |
-| 1.2 | SOME/IP-SD 服务发现报文构造 | `core/protocol.py` | ⬜ |
-| 1.3 | SOME/IP-TP 分段报文支持 | `core/protocol.py` | ⬜ |
-| 1.4 | UDP 异步收发器 | `core/transport.py` | ⬜ |
-| 1.5 | TCP 异步收发器 | `core/transport.py` | ⬜ |
-| 1.6 | 多播订阅与发送（SD 用） | `core/transport.py` | ⬜ |
-| 1.7 | 报文序列化器（Header → bytes） | `core/protocol.py` | ⬜ |
-| 1.8 | 报文反序列化器（bytes → Header + Payload） | `core/protocol.py` | ⬜ |
-| 1.9 | PCAP 抓包封装 | `utils/pcap.py` | ⬜ |
-| 1.10 | 报文工厂方法（常用模板：Request、Notification、Offer、Subscribe） | `core/protocol.py` | ⬜ |
-| 1.11 | loguru 日志统一封装 | `utils/logger.py` | ⬜ |
-| 1.12 | 配置加载（TOML） | `utils/config.py` | ⬜ |
+| 1.1 | SOME/IP 报文构造封装 | `core/protocol.py` | ✅ |
+| 1.2 | SOME/IP-SD 服务发现报文构造 | `core/protocol.py` | ✅ |
+| 1.3 | SOME/IP-TP 分段报文支持 | `core/protocol.py` | ✅ |
+| 1.4 | UDP 异步收发器 | `core/transport.py` | ✅ |
+| 1.5 | TCP 异步收发器 | `core/transport.py` | ✅ |
+| 1.6 | 多播订阅与发送（SD 用） | `core/transport.py` | ✅ |
+| 1.7 | 报文序列化器（Header → bytes） | `core/protocol.py` | ✅ |
+| 1.8 | 报文反序列化器（bytes → Header + Payload） | `core/protocol.py` | ✅ |
+| 1.9 | PCAP 抓包封装 | `utils/pcap.py` | ✅ |
+| 1.10 | 报文工厂方法（常用模板：Request、Notification、Offer、Subscribe） | `core/protocol.py` | ✅ |
+| 1.11 | loguru 日志统一封装 | `utils/logger.py` | ✅ |
+| 1.12 | 配置加载（TOML） | `utils/config.py` | ✅ |
 
 ---
 
@@ -168,4 +168,10 @@ async def test_udp_loopback():
 
 ## 1.7 问题记录
 
-（验收失败时在此追加）
+**验收清单 2 项延至 Phase 8**：
+
+- "能成功抓取并解析至少 100 个 SOME/IP 报文" — 需要外部 vsomeip VM 靶机，条件尚未具备
+- "多播报文互通" — 同上，需 VM 靶机网络环境
+
+两项均已在验收清单中标注"需外部 VM 靶机，Phase 8 验证"，不影响 Phase 1 通过。
+将在 Phase 8（vsomeip 靶机集成 + 端到端联调）中统一验证。

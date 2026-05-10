@@ -23,17 +23,17 @@ git_tag: v0.0.0
 
 | ID | 任务 | 状态 |
 |----|------|------|
-| 0.1 | 创建标准目录结构 | ⬜ |
-| 0.2 | 编写 `pyproject.toml`（uv 项目定义） | ⬜ |
-| 0.3 | 编写 `.python-version`（锁定 Python 版本） | ⬜ |
-| 0.4 | 编写 `.gitignore` | ⬜ |
-| 0.5 | 编写初始 `README.md` | ⬜ |
-| 0.6 | 执行 `uv sync` 生成 `uv.lock` | ⬜ |
-| 0.7 | 初始化 git 仓库并添加 remote | ⬜ |
-| 0.8 | 创建 `src/someip_fuzzer/__init__.py` 骨架 | ⬜ |
-| 0.9 | 创建 `src/someip_fuzzer/main.py` 入口（仅打印 banner） | ⬜ |
-| 0.10 | 创建初始 GitHub Actions CI 配置（pytest） | ⬜ |
-| 0.11 | 验证 `uv run someip-fuzzer` 可正常启动 | ⬜ |
+| 0.1 | 创建标准目录结构 | ✅ |
+| 0.2 | 编写 `pyproject.toml`（uv 项目定义） | ✅ |
+| 0.3 | 编写 `.python-version`（锁定 Python 版本） | ✅ |
+| 0.4 | 编写 `.gitignore` | ✅ |
+| 0.5 | 编写初始 `README.md` | ✅ |
+| 0.6 | 执行 `uv sync` 生成 `uv.lock` | ✅ |
+| 0.7 | 初始化 git 仓库并添加 remote | ✅ |
+| 0.8 | 创建 `src/someip_fuzzer/__init__.py` 骨架 | ✅ |
+| 0.9 | 创建 `src/someip_fuzzer/main.py` 入口（仅打印 banner） | ✅ |
+| 0.10 | 创建初始 GitHub Actions CI 配置（pytest） | ✅ |
+| 0.11 | 验证 `uv run someip-fuzzer` 可正常启动 | ✅ |
 
 ---
 
@@ -174,7 +174,7 @@ Thumbs.db
 def test_import():
     """模块可导入"""
     import someip_fuzzer
-    assert someip_fuzzer.__version__ == "0.1.0"
+    assert someip_fuzzer.__version__ == "0.2.0"
 
 def test_main_callable():
     """入口函数可调用"""
