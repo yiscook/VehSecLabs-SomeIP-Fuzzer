@@ -216,3 +216,120 @@ def replace_header_bytes(raw: bytes, offset: int, value: bytes) -> bytes:
         )
     _check_header(raw)
     return raw[:offset] + value + raw[end:]
+
+
+# ── 调度器 ────────────────────────────────────────────────────────────────────
+
+
+class MutationScheduler:
+    """加权随机变异器调度器。
+
+    职责：
+    - 在已注册的变异器集合中按 ``layer`` / ``target_field`` 过滤候选；
+    - 用调用方注入的 :class:`random.Random` 做加权随机选一个；
+    - 暴露 :meth:`update_weight` / :meth:`disable` 供 Phase 4 反馈引擎动态调整。
+
+    权重语义：
+    - 初始权重来自 ``BaseMutator.weight`` ClassVar（默认 1.0）。
+    - ``update_weight(name, 0.0)`` 等价于禁用——``select`` 时会被过滤。
+    - 全部权重为 0 时 :meth:`select` 抛 :class:`LookupError`，由调用方决定是否回退。
+
+    用法::
+
+        scheduler = MutationScheduler()           # 用全局 MUTATOR_REGISTRY
+        m = scheduler.select(layer=1, rng=rng)    # 随机选一个 Layer 1 变异器
+        result = m.mutate(seed, rng)
+    """
+
+    def __init__(
+        self,
+        registry: dict[str, type[BaseMutator]] | None = None,
+        rng: random.Random | None = None,
+    ) -> None:
+        src = registry if registry is not None else MUTATOR_REGISTRY
+        # 在调度器构造时一次性实例化所有变异器，避免每次 select 都重建
+        self._mutators: list[BaseMutator] = [cls() for cls in src.values()]
+        self._weights: dict[str, float] = {m.name: m.weight for m in self._mutators}
+        # 默认 RNG 仅在调用方未传 rng 时使用；模糊测试主流程应始终显式传入
+        self._default_rng = rng or random.Random()
+
+    # ── 选择 ─────────────────────────────────────────────────────────────────
+
+    def select(
+        self,
+        layer: int | None = None,
+        target_field: str | None = None,
+        rng: random.Random | None = None,
+    ) -> BaseMutator:
+        """按 ``layer`` / ``target_field`` 过滤后做加权随机选择。
+
+        Args:
+            layer: 仅考虑 ``cls.layer == layer`` 的变异器。``None`` 不过滤。
+            target_field: 仅考虑 ``cls.target_field == target_field`` 的变异器。
+            rng: 调用方注入的随机数发生器。``None`` 时用调度器默认 RNG。
+
+        Returns:
+            被选中的 :class:`BaseMutator` 实例（不是类）。
+
+        Raises:
+            LookupError: 没有满足条件且权重 > 0 的候选。
+        """
+        candidates = [
+            m for m in self._mutators
+            if (layer is None or m.layer == layer)
+            and (target_field is None or m.target_field == target_field)
+            and self._weights.get(m.name, 0.0) > 0.0
+        ]
+        if not candidates:
+            raise LookupError(
+                f"无满足条件的变异器：layer={layer}, target_field={target_field!r}"
+            )
+        weights = [self._weights[m.name] for m in candidates]
+        chooser = rng if rng is not None else self._default_rng
+        return chooser.choices(candidates, weights=weights, k=1)[0]
+
+    # ── 反馈接口（Phase 4 用） ──────────────────────────────────────────────
+
+    def update_weight(self, name: str, score: float) -> None:
+        """调整变异器权重。``score`` 必须 ≥ 0。
+
+        Phase 4 反馈引擎会基于覆盖率/崩溃率给"成功"的变异器加权重，
+        给"无效"的降权或归零。
+        """
+        if name not in self._weights:
+            raise KeyError(f"未注册的变异器：{name!r}")
+        if score < 0:
+            raise ValueError(f"score 必须 ≥ 0，收到 {score}")
+        self._weights[name] = float(score)
+
+    def disable(self, name: str) -> None:
+        """临时禁用某个变异器（等价于 ``update_weight(name, 0.0)``）。"""
+        self.update_weight(name, 0.0)
+
+    def enable(self, name: str, weight: float = 1.0) -> None:
+        """重新启用一个被禁用的变异器，恢复指定权重（默认 1.0）。"""
+        self.update_weight(name, weight)
+
+    def get_weight(self, name: str) -> float:
+        """查询当前权重。未注册抛 :class:`KeyError`。"""
+        if name not in self._weights:
+            raise KeyError(f"未注册的变异器：{name!r}")
+        return self._weights[name]
+
+    # ── 查询 ─────────────────────────────────────────────────────────────────
+
+    def list_active(self) -> list[BaseMutator]:
+        """列出当前权重 > 0 的变异器实例。"""
+        return [m for m in self._mutators if self._weights.get(m.name, 0.0) > 0.0]
+
+    def list_all(self) -> list[BaseMutator]:
+        """列出所有变异器实例（含已禁用）。"""
+        return list(self._mutators)
+
+    def __len__(self) -> int:
+        """注册表中变异器总数（含已禁用）。"""
+        return len(self._mutators)
+
+    def __repr__(self) -> str:
+        active = sum(1 for w in self._weights.values() if w > 0.0)
+        return f"MutationScheduler(total={len(self._mutators)}, active={active})"
