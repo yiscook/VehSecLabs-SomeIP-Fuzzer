@@ -3,9 +3,11 @@
 ```yaml
 phase: 7
 title: 结果分析 + 报告生成
-status: Not Started
+status: Complete
 recommended_model: Sonnet 4.6 + Haiku 4.5（模板）
-acceptance_passed: false
+acceptance_passed: true
+started_at: 2026-05-11
+completed_at: 2026-05-11
 git_tag: v0.7.0
 ```
 
@@ -23,31 +25,31 @@ git_tag: v0.7.0
 
 | ID | 任务 | 文件 | 状态 |
 |----|------|------|------|
-| 7.1 | 崩溃用例列表（按时间/严重度排序） | `gui/tab_results.py` | ⬜ |
-| 7.2 | 单条崩溃详情面板 | `gui/tab_results.py` | ⬜ |
-| 7.3 | 崩溃报文 Hex View + 字段树 | `gui/tab_results.py` | ⬜ |
-| 7.4 | 一键重放按钮（调用 Phase 4 重放引擎） | `gui/tab_results.py` | ⬜ |
-| 7.5 | 异常聚类视图（相似崩溃自动归并） | `gui/tab_results.py` | ⬜ |
-| 7.6 | CVSS 评分（自动计算 + 手动调整） | `gui/widgets/cvss_calculator.py` | ⬜ |
-| 7.7 | 崩溃统计仪表盘（按字段分布、按 Layer 分布） | `gui/widgets/dashboard.py` | ⬜ |
-| 7.8 | 崩溃用例搜索/过滤 | `gui/tab_results.py` | ⬜ |
-| 7.9 | 导出最小化复现脚本 | `gui/tab_results.py` | ⬜ |
-| 7.10 | 测试会话历史浏览 | `gui/tab_results.py` | ⬜ |
+| 7.1 | 崩溃用例列表（按时间/严重度排序） | `gui/tab_results.py` | ✅ |
+| 7.2 | 单条崩溃详情面板 | `gui/tab_results.py` | ✅ |
+| 7.3 | 崩溃报文 Hex View + 字段树 | `gui/tab_results.py` | ✅ |
+| 7.4 | 一键重放按钮（调用 Phase 4 重放引擎） | `gui/tab_results.py` | ✅ |
+| 7.5 | 异常聚类视图（相似崩溃自动归并） | `gui/tab_results.py` | ✅ |
+| 7.6 | CVSS 评分（自动计算 + 手动调整） | `gui/widgets/cvss_calculator.py` | ✅ |
+| 7.7 | 崩溃统计仪表盘（按字段分布、按 Layer 分布） | `gui/widgets/dashboard.py` | ✅ |
+| 7.8 | 崩溃用例搜索/过滤 | `gui/tab_results.py` | ✅ |
+| 7.9 | 导出最小化复现脚本 | `gui/tab_results.py` | ✅ |
+| 7.10 | 测试会话历史浏览 | `gui/tab_results.py` | ✅ |
 
 ### 7.B - Tab 5: 报告生成
 
 | ID | 任务 | 文件 | 状态 |
 |----|------|------|------|
-| 7.11 | 报告模板系统（Jinja2） | `core/reporter.py` | ⬜ |
-| 7.12 | HTML 报告模板 | `templates/report.html` | ⬜ |
-| 7.13 | PDF 报告模板（WeasyPrint） | `templates/report.html` | ⬜ |
-| 7.14 | DOCX 报告生成（python-docx） | `core/reporter.py` | ⬜ |
-| 7.15 | 报告章节勾选（执行摘要、统计、崩溃详情、修复建议） | `gui/tab_report.py` | ⬜ |
-| 7.16 | 报告时间范围选择 | `gui/tab_report.py` | ⬜ |
-| 7.17 | 自定义 Logo / 公司信息 | `gui/tab_report.py` | ⬜ |
-| 7.18 | 报告预览面板（嵌入 QWebEngineView） | `gui/tab_report.py` | ⬜ |
-| 7.19 | 一键导出按钮 | `gui/tab_report.py` | ⬜ |
-| 7.20 | 报告样式（专业商业感） | `templates/styles/report.css` | ⬜ |
+| 7.11 | 报告模板系统（Jinja2） | `core/reporter.py` | ✅ |
+| 7.12 | HTML 报告模板 | `templates/report.html` | ✅ |
+| 7.13 | PDF 报告模板（WeasyPrint） | `templates/report.html` | ✅ |
+| 7.14 | DOCX 报告生成（python-docx） | `core/reporter.py` | ✅ |
+| 7.15 | 报告章节勾选（执行摘要、统计、崩溃详情、修复建议） | `gui/tab_report.py` | ✅ |
+| 7.16 | 报告时间范围选择 | `gui/tab_report.py` | ✅ |
+| 7.17 | 自定义 Logo / 公司信息 | `gui/tab_report.py` | ✅ |
+| 7.18 | 报告预览面板（嵌入 QWebEngineView） | `gui/tab_report.py` | ✅ |
+| 7.19 | 一键导出按钮 | `gui/tab_report.py` | ✅ |
+| 7.20 | 报告样式（专业商业感） | `templates/styles/report.css` | ✅ |
 
 ---
 
@@ -220,17 +222,17 @@ def test_crash_clustering():
 
 ## 7.7 验收清单
 
-- [ ] Tab 4 能列出所有崩溃，按多种方式排序
-- [ ] 崩溃详情包含完整字段树、Hex、复现步骤
-- [ ] 一键重放按钮可调用 Phase 4 重放引擎成功复现
-- [ ] CVSS 自动评分合理，可手动微调
-- [ ] 异常聚类能将相似崩溃归并
-- [ ] Tab 5 能生成 HTML、PDF、DOCX 三种格式
-- [ ] 报告内容完整：摘要、方法、漏洞、复现、修复建议
-- [ ] 报告样式专业（适合提交给客户）
-- [ ] 自定义 Logo 和公司信息生效
-- [ ] 单元测试覆盖率 ≥ 60%
-- [ ] git 规范提交、push GitHub
+- [x] Tab 4 能列出所有崩溃，按多种方式排序
+- [x] 崩溃详情包含完整字段树、Hex、复现步骤
+- [x] 一键重放按钮可调用 Phase 4 重放引擎成功复现
+- [x] CVSS 自动评分合理，可手动微调
+- [x] 异常聚类能将相似崩溃归并
+- [x] Tab 5 能生成 HTML、PDF、DOCX 三种格式
+- [x] 报告内容完整：摘要、方法、漏洞、复现、修复建议
+- [x] 报告样式专业（适合提交给客户）
+- [x] 自定义 Logo 和公司信息生效
+- [x] 单元测试覆盖率 ≥ 60%
+- [x] git 规范提交、push GitHub
 
 ---
 
