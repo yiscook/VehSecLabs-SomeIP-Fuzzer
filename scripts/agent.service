@@ -1,0 +1,19 @@
+[Unit]
+Description=vsomeip Monitoring Agent
+Documentation=https://github.com/yiscook/VehSecLabs-SomeIP-Fuzzer
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu-dev
+ExecStart=/usr/bin/python3 /home/ubuntu-dev/scripts/agent.py \
+    --port 9999 \
+    --process response-sample \
+    --asan-log /tmp/vsomeip_asan.log
+Restart=always
+RestartSec=3
+StandardOutput=append:/home/ubuntu-dev/vsomeip-logs/agent.log
+StandardError=append:/home/ubuntu-dev/vsomeip-logs/agent.log
+
+[Install]
+WantedBy=multi-user.target
