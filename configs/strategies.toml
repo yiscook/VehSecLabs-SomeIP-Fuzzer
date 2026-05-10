@@ -23,9 +23,21 @@ enabled_layers = [1, 2]
 "L1-S05.random_uniform"  = 0.5
 "L1-P01.random_bytes"    = 0.5
 
-# SD 语义变异高危，权重略提
-"L2-SD03.excessive_entries" = 3.0
-"L2-SD04.option_index_oob"  = 3.0
+# ── Layer 2.3 字符串语义（L2-S）────────────────────────────────────────────────
+# format_string / very_long 触发常见漏洞，权重提高
+"L2-S04.format_string"      = 1.5
+"L2-S05.very_long"          = 1.5
+
+# ── Layer 2.5 字段间约束破坏（L2-C）────────────────────────────────────────────
+# length_payload_inconsistent 直接影响内存安全，设最高权重
+"L2-C01.length_payload_inconsistent" = 2.0
+
+# ── Layer 2.6 SD Entry/Option 语义变异（L2-SD）──────────────────────────────────
+# excessive_entries 生成大 payload，略降权避免频繁打满网络
+"L2-SD03.excessive_entries" = 0.8
+# option_index_oob / invalid_entry_type 覆盖 SD 解析高危路径
+"L2-SD04.option_index_oob"  = 1.5
+"L2-SD01.invalid_entry_type" = 1.5
 
 # ── 黑名单 ───────────────────────────────────────────────────────────────────
 # 将变异器名字加入此列表可临时禁用（权重强制归零，优先级高于 weights 覆盖）

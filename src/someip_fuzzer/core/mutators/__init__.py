@@ -24,5 +24,4 @@ from someip_fuzzer.core.mutators import layer1_fields    # noqa: F401
 from someip_fuzzer.core.mutators import layer1_payload   # noqa: F401
 from someip_fuzzer.core.mutators import layer2_semantic  # noqa: F401
 
-# 后续 task 将逐步取消注释：
-# from someip_fuzzer.core.mutators import layer2_sd  # noqa: F401
+from someip_fuzzer.core.mutators import layer2_sd    # noqa: F401
