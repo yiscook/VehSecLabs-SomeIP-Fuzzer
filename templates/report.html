@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ config.title }}</title>
+  <style>
+    {{ css }}
+  </style>
+</head>
+<body>
+
+<!-- ── 封面 ─────────────────────────────────────────────── -->
+<div class="cover">
+  {% if config.logo_path %}
+  <img class="logo" src="{{ config.logo_path }}" alt="Logo">
+  {% endif %}
+  <h1>{{ config.title }}</h1>
+  <div class="meta">
+    <div>{{ config.company }}</div>
+    {% if config.author %}<div>{{ config.author }}</div>{% endif %}
+    <div>{{ session.date }}</div>
+    <div>会话编号：{{ session.id }}</div>
+  </div>
+  {% if summary.crashes > 0 %}
+  <span class="badge">发现 {{ summary.crashes }} 个安全漏洞</span>
+  {% else %}
+  <span class="badge" style="background:#40a02b;">未发现崩溃</span>
+  {% endif %}
+</div>
+
+<!-- ── 执行摘要 ───────────────────────────────────────────── -->
+{% if config.include_methodology %}
+<h2>1. 执行摘要</h2>
+<div class="summary-grid">
+  <div class="stat-card">
+    <div class="value">{{ summary.sent }}</div>
+    <div class="label">发送报文总量</div>
+  </div>
+  <div class="stat-card {% if summary.crashes > 0 %}critical{% endif %}">
+    <div class="value">{{ summary.crashes }}</div>
+    <div class="label">检测到崩溃</div>
+  </div>
+  <div class="stat-card">
+    <div class="value">{{ summary.duration }}</div>
+    <div class="label">测试时长（秒）</div>
+  </div>
+  <div class="stat-card critical">
+    <div class="value">{{ summary.critical }}</div>
+    <div class="label">严重（CVSS≥9）</div>
+  </div>
+  <div class="stat-card high">
+    <div class="value">{{ summary.high }}</div>
+    <div class="label">高危（CVSS≥7）</div>
+  </div>
+  <div class="stat-card medium">
+    <div class="value">{{ summary.medium }}</div>
+    <div class="label">中危（CVSS≥4）</div>
+  </div>
+</div>
+
+<table>
+  <tr><th colspan="2">测试环境</th></tr>
+  <tr><td>靶机地址</td><td>{{ session.target }}</td></tr>
+  <tr><td>传输协议</td><td>{{ session.transport | upper }}</td></tr>
+  <tr><td>测试时间</td><td>{{ session.date }}</td></tr>
+  <tr><td>变异策略</td><td>{{ summary.strategies }} 种</td></tr>
+</table>
+{% endif %}
+
+<!-- ── 测试方法 ───────────────────────────────────────────── -->
+{% if config.include_methodology %}
+<div class="section-break"></div>
+<h2>2. 测试方法</h2>
+<p>本次测试采用 VehSecLabs-SomeIP-Fuzzer，基于 5 层协议语义感知变异架构对 SOME/IP 服务实施自动化模糊测试。</p>
+<h3>2.1 变异架构</h3>
+<table>
+  <tr><th>层级</th><th>变异类型</th><th>策略数</th></tr>
+  <tr><td>Layer 1</td><td>字段级边界值变异（Service ID / Method ID / Length 等）</td><td>53</td></tr>
+  <tr><td>Layer 2</td><td>协议语义变异（TLV 结构 / 字符串溢出 / 字节序混淆）</td><td>40</td></tr>
+  <tr><td>Layer 3</td><td>状态机异常注入（非法状态迁移 / TTL 攻击）</td><td>12</td></tr>
+  <tr><td>Layer 4</td><td>多报文攻击链（服务劫持 / DoS / 订阅风暴）</td><td>8</td></tr>
+  <tr><td>Layer 5</td><td>反馈优化（GA + Markov + 熵值分析）</td><td>—</td></tr>
+</table>
+<h3>2.2 崩溃检测机制</h3>
+<p>采用三路融合检测：心跳超时检测（HeartbeatMonitor）、响应异常分析（ResponseAnalyzer）、远程进程监控（AgentClient），任一触发即判定为崩溃。</p>
+{% endif %}
+
+<!-- ── 漏洞详情 ───────────────────────────────────────────── -->
+{% if config.include_vulnerabilities and crashes %}
+<div class="section-break"></div>
+<h2>3. 漏洞详情</h2>
+{% for crash in crashes %}
+<div class="vuln-card">
+  <div class="vuln-header">
+    <span class="vuln-id">{{ loop.index | format_crash_id }}</span>
+    <span class="vuln-title">{{ crash.mutator_name }}</span>
+    <span class="cvss-badge cvss-{{ crash.severity }}">
+      CVSS {{ "%.1f"|format(crash.cvss_score) }} — {{ crash.severity | upper }}
+    </span>
+  </div>
+  <div class="vuln-body">
+    <p><span class="field-label">检测时间：</span>{{ crash.timestamp }}</p>
+    <p><span class="field-label">触发策略：</span><code>{{ crash.mutator_name }}</code></p>
+    <p><span class="field-label">检测方式：</span>{{ crash.detection_method }}</p>
+    <p><span class="field-label">靶机地址：</span>{{ crash.target_addr[0] }}:{{ crash.target_addr[1] }}</p>
+    {% if crash.context %}
+    <p><span class="field-label">上下文：</span>
+      Service 0x{{ "%04X"|format(crash.context.get("service_id", 0)) }} /
+      Method 0x{{ "%04X"|format(crash.context.get("method_id", 0)) }}
+    </p>
+    {% endif %}
+
+    {% if config.include_reproduction %}
+    <h4>触发报文（原始字节）</h4>
+    <pre>{{ crash.triggering_bytes | hexdump }}</pre>
+    {% endif %}
+
+    {% if crash.asan_log %}
+    <h4>ASan 日志摘要</h4>
+    <pre>{{ crash.asan_log[:500] }}{% if crash.asan_log|length > 500 %}…（已截断）{% endif %}</pre>
+    {% endif %}
+
+    {% if config.include_recommendations %}
+    <div class="recommendation">
+      <strong>修复建议：</strong>对 <code>{{ crash.mutator_name | split(".") | first }}</code> 相关字段
+      添加严格的长度/范围校验，并使用内存安全机制（如 AddressSanitizer 测试覆盖）。
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endfor %}
+{% endif %}
+
+<!-- ── CVSS 评分汇总 ─────────────────────────────────────── -->
+{% if config.include_cvss and crashes %}
+<div class="section-break"></div>
+<h2>4. CVSS 评分汇总</h2>
+<table>
+  <tr><th>#</th><th>崩溃 ID</th><th>策略</th><th>严重度</th><th>CVSS 分值</th><th>向量</th></tr>
+  {% for crash in crashes %}
+  <tr>
+    <td>{{ loop.index }}</td>
+    <td><code>{{ crash.crash_id[:8] }}…</code></td>
+    <td>{{ crash.mutator_name }}</td>
+    <td class="cvss-{{ crash.severity }}"><strong>{{ crash.severity | upper }}</strong></td>
+    <td><strong>{{ "%.1f"|format(crash.cvss_score) }}</strong></td>
+    <td>{{ crash.context.get("cvss_vector", "—") }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endif %}
+
+<!-- ── 附录 ─────────────────────────────────────────────── -->
+{% if config.include_raw_appendix and crashes %}
+<div class="section-break"></div>
+<h2>附录：原始测试数据</h2>
+{% for crash in crashes %}
+<h3>{{ loop.index }}. {{ crash.crash_id }}</h3>
+<pre>{{ crash.triggering_bytes | hexdump }}</pre>
+{% endfor %}
+{% endif %}
+
+<!-- ── 页脚 ─────────────────────────────────────────────── -->
+<footer>
+  本报告由 VehSecLabs-SomeIP-Fuzzer 自动生成 | 科研项目 TECHKY202503 |
+  {{ config.company }} | {{ session.date }}
+</footer>
+
+</body>
+</html>

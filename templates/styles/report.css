@@ -1,0 +1,177 @@
+/* VehSecLabs SomeIP Fuzzer — 报告样式表（A4 打印友好） */
+
+/* ── 基础 ─────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: "Segoe UI", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+    font-size: 11pt;
+    line-height: 1.6;
+    color: #1a1a2e;
+    background: #fff;
+    max-width: 210mm;
+    margin: 0 auto;
+    padding: 20mm;
+}
+
+/* ── 封面 ─────────────────────────────────────────────────── */
+.cover {
+    text-align: center;
+    padding: 40mm 0 30mm;
+    border-bottom: 3px solid #1e66f5;
+    margin-bottom: 20mm;
+    page-break-after: always;
+}
+.cover .logo { max-height: 60px; margin-bottom: 20px; }
+.cover h1 {
+    font-size: 24pt;
+    font-weight: 700;
+    color: #1e1e2e;
+    margin-bottom: 12px;
+}
+.cover .meta {
+    font-size: 11pt;
+    color: #6c6f85;
+    margin-top: 24px;
+    line-height: 2;
+}
+.cover .badge {
+    display: inline-block;
+    background: #1e66f5;
+    color: #fff;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 10pt;
+    margin-top: 16px;
+}
+
+/* ── 标题层级 ─────────────────────────────────────────────── */
+h2 {
+    font-size: 16pt;
+    color: #1e66f5;
+    border-left: 4px solid #1e66f5;
+    padding-left: 10px;
+    margin: 24px 0 12px;
+}
+h3 {
+    font-size: 13pt;
+    color: #1a1a2e;
+    margin: 18px 0 8px;
+}
+h4 { font-size: 11pt; color: #4c4f69; margin: 12px 0 6px; }
+
+/* ── 摘要统计表 ───────────────────────────────────────────── */
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin: 16px 0 24px;
+}
+.stat-card {
+    border: 1px solid #bcc0cc;
+    border-radius: 8px;
+    padding: 14px 16px;
+    text-align: center;
+}
+.stat-card .value {
+    font-size: 28pt;
+    font-weight: 700;
+    color: #1e66f5;
+}
+.stat-card .label { font-size: 9pt; color: #6c6f85; margin-top: 4px; }
+.stat-card.critical .value { color: #d20f39; }
+.stat-card.high .value    { color: #fe640b; }
+.stat-card.medium .value  { color: #df8e1d; }
+
+/* ── 漏洞卡片 ─────────────────────────────────────────────── */
+.vuln-card {
+    border: 1px solid #bcc0cc;
+    border-radius: 8px;
+    margin: 16px 0;
+    overflow: hidden;
+    page-break-inside: avoid;
+}
+.vuln-card .vuln-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    background: #eff1f5;
+    border-bottom: 1px solid #bcc0cc;
+}
+.vuln-card .vuln-id   { font-weight: 700; font-size: 10pt; color: #4c4f69; }
+.vuln-card .vuln-title{ flex: 1; font-weight: 600; }
+.cvss-badge {
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 9pt;
+    font-weight: 700;
+    color: #fff;
+}
+.cvss-critical { background: #d20f39; }
+.cvss-high     { background: #fe640b; }
+.cvss-medium   { background: #df8e1d; }
+.cvss-low      { background: #40a02b; }
+
+.vuln-card .vuln-body { padding: 12px 16px; }
+.vuln-card .vuln-body p { margin-bottom: 8px; }
+.vuln-card .field-label { color: #6c6f85; font-size: 9.5pt; }
+
+/* ── 代码/Hex 块 ─────────────────────────────────────────── */
+pre, code {
+    font-family: "Consolas", "Courier New", monospace;
+    font-size: 9pt;
+}
+pre {
+    background: #e6e9ef;
+    border: 1px solid #bcc0cc;
+    border-radius: 4px;
+    padding: 10px 14px;
+    overflow-x: auto;
+    line-height: 1.5;
+    margin: 8px 0;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+code { background: #e6e9ef; padding: 1px 4px; border-radius: 3px; }
+
+/* ── 通用表格 ─────────────────────────────────────────────── */
+table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 10pt; }
+th {
+    background: #1e66f5;
+    color: #fff;
+    padding: 7px 10px;
+    text-align: left;
+    font-weight: 600;
+}
+td { padding: 6px 10px; border-bottom: 1px solid #e6e9ef; }
+tr:nth-child(even) td { background: #f8f9fc; }
+
+/* ── 修复建议 ─────────────────────────────────────────────── */
+.recommendation {
+    background: #e6f4ea;
+    border-left: 4px solid #40a02b;
+    border-radius: 0 6px 6px 0;
+    padding: 10px 14px;
+    margin: 10px 0;
+    font-size: 10pt;
+}
+
+/* ── 分隔 & 页脚 ──────────────────────────────────────────── */
+.section-break { page-break-before: always; }
+footer {
+    margin-top: 40px;
+    padding-top: 12px;
+    border-top: 1px solid #bcc0cc;
+    font-size: 9pt;
+    color: #9ca0b0;
+    text-align: center;
+}
+
+/* ── 打印 ─────────────────────────────────────────────────── */
+@media print {
+    body { padding: 0; }
+    .cover { page-break-after: always; }
+    .vuln-card { page-break-inside: avoid; }
+}
+@page { margin: 20mm; }
