@@ -20,9 +20,9 @@
 
 # 子模块导入会触发模块级 @register_mutator 装饰器执行 → 注册到 MUTATOR_REGISTRY。
 # 顺序与 SPEC 一致；新模块加入时追加导入即可。
-from someip_fuzzer.core.mutators import layer1_fields   # noqa: F401
-from someip_fuzzer.core.mutators import layer1_payload  # noqa: F401
+from someip_fuzzer.core.mutators import layer1_fields    # noqa: F401
+from someip_fuzzer.core.mutators import layer1_payload   # noqa: F401
+from someip_fuzzer.core.mutators import layer2_semantic  # noqa: F401
 
 # 后续 task 将逐步取消注释：
-# from someip_fuzzer.core.mutators import layer2_semantic  # noqa: F401
-# from someip_fuzzer.core.mutators import layer2_sd        # noqa: F401
+# from someip_fuzzer.core.mutators import layer2_sd  # noqa: F401
