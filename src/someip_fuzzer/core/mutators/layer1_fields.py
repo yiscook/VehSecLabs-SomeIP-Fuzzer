@@ -30,7 +30,12 @@ from __future__ import annotations
 import dataclasses
 import random
 
-from someip_fuzzer.core.mutator import BaseMutator, MutationResult, register_mutator
+from someip_fuzzer.core.mutator import (
+    BaseMutator,
+    MutationResult,
+    register_mutator,
+    replace_length_field,
+)
 from someip_fuzzer.core.protocol import SomeIpPacket
 
 # ── 常量 ─────────────────────────────────────────────────────────────────────
@@ -692,3 +697,227 @@ class RetCodeOkWhenErrorTypeMutator(BaseMutator):
     def mutate(self, seed: SomeIpPacket, rng: random.Random) -> MutationResult:
         new = dataclasses.replace(seed, message_type=0x81, return_code=0x00)  # ERROR + E_OK
         return self._make_result(new)
+
+
+# ── L1-L01 ~ L1-L07：Length 变异（7 种，字节级路径）⭐高危字段 ────────────────
+#
+# Length 字段位于 SOME/IP header offset 4-7（4 字节，big-endian uint32）。
+# 语义：Length = 8 + len(payload)。即 Length 包含 byte 8 起的 8 字节后续 header
+# 加上 payload 的字节数。完整报文长度 = 16 + len(payload) = Length + 8。
+#
+# 与其他变异器的关键差异：
+# 1. **必须绕过 scapy 的自动计算**——若用 dataclasses.replace 改 length，
+#    SomeIpPacket.to_bytes() 会按真实 payload 重新计算，覆盖我们的篡改。
+# 2. 全部使用 ``replace_length_field()`` 直接覆盖 raw_bytes 第 4-7 字节。
+# 3. ``MutationResult.packet`` 字段填 None（畸形字节流无法回到合法 dataclass），
+#    通过 ``self._make_raw_result()`` 构造结果。
+# 4. metadata 至少包含 ``length_value``（4 字节 uint32 的实际写入值），
+#    为 GUI 与崩溃归因提供精准上下文。
+#
+# 攻击向量映射（与 SPEC §2.3 Layer 1.3 表格一致）：
+#   L1-L01 0xFFFFFFFF       → 内存分配整数溢出 / OOM
+#   L1-L02 [0, 7]           → payload_len = length - 8 解析下溢
+#   L1-L03 0                → 边界值，应被拒绝
+#   L1-L04 declared < actual → 截断攻击（隐藏数据）
+#   L1-L05 declared > actual → 越界读取（leak receive buffer）
+#   L1-L06 [0x80000000, 0xFFFFFFFE] → signed int32 负数解释
+#   L1-L07 [0, 0xFFFFFFFF]   → 广撒网
+
+
+@register_mutator
+class LengthOverflowMaxMutator(BaseMutator):
+    """L1-L01：Length 设为 uint32 最大值 0xFFFFFFFF（整数溢出 / OOM）。
+
+    服务端按 Length 分配缓冲区时易触发：
+    - malloc(length) 失败 → 异常未捕获导致进程崩溃
+    - length + header_size 整数加法溢出 → 实际分配 0/极小缓冲区
+    - 若进入 receive 循环则触发 OOM 或挂起
+    """
+
+    name = "L1-L01.overflow_4byte_max"
+    layer = 1
+    target_field = "length"
+    strategy = "overflow_4byte_max"
+    weight = 5.0  # 与 configs/strategies.toml 一致：高危抬权
+
+    def mutate(self, seed: SomeIpPacket, rng: random.Random) -> MutationResult:
+        raw = seed.to_bytes()
+        new_raw = replace_length_field(raw, 0xFFFFFFFF)
+        return self._make_raw_result(
+            new_raw,
+            length_value=0xFFFFFFFF,
+            actual_length=8 + len(seed.payload),
+        )
+
+
+@register_mutator
+class LengthUnderflowTooSmallMutator(BaseMutator):
+    """L1-L02：Length 设为 [0, 7] 内随机值（小于 SOME/IP header 后半部分的 8 字节）。
+
+    Length 必须 ≥ 8（包含 client_id + session_id + 4 个版本/类型字节）。
+    设为 < 8 触发 ``payload_len = length - 8`` 计算的整数下溢；
+    在 size_t 上下文中变成 0xFFFFFFF8+ 的超大值 → 越界读取或 SIGSEGV。
+    """
+
+    name = "L1-L02.underflow_too_small"
+    layer = 1
+    target_field = "length"
+    strategy = "underflow_too_small"
+    weight = 5.0
+
+    def mutate(self, seed: SomeIpPacket, rng: random.Random) -> MutationResult:
+        raw = seed.to_bytes()
+        new_length = rng.randint(0, 7)
+        new_raw = replace_length_field(raw, new_length)
+        return self._make_raw_result(
+            new_raw,
+            length_value=new_length,
+            actual_length=8 + len(seed.payload),
+        )
+
+
+@register_mutator
+class LengthZeroMutator(BaseMutator):
+    """L1-L03：Length 设为 0（边界值）。
+
+    Length=0 在所有合法实现中都应被立即拒绝；未拒绝即暴露规范校验缺失。
+    与 L1-L02 相比，0 是更"明显"的非法值，触发的多是 early-return 路径。
+    """
+
+    name = "L1-L03.zero"
+    layer = 1
+    target_field = "length"
+    strategy = "zero"
+    weight = 3.0
+
+    def mutate(self, seed: SomeIpPacket, rng: random.Random) -> MutationResult:
+        raw = seed.to_bytes()
+        new_raw = replace_length_field(raw, 0)
+        return self._make_raw_result(
+            new_raw,
+            length_value=0,
+            actual_length=8 + len(seed.payload),
+        )
+
+
+@register_mutator
+class LengthMismatchActualLargerMutator(BaseMutator):
+    """L1-L04：实际报文 payload 大于 Length 字段所声明（截断攻击）。
+
+    保持 raw_bytes 不变，将 Length 改为 actual_length 之下的值：
+    - 优先 [8, actual-1]，避免与 L1-L02 underflow 混叠；
+    - 极小种子（payload 为空）退回 [0, actual-1]，可能触发 underflow 路径。
+
+    服务端按 Length 切片时多余的 payload 字节被静默丢弃 →
+    隐藏 payload 攻击（slip data past length-based sanitization）。
+    """
+
+    name = "L1-L04.mismatch_actual_larger"
+    layer = 1
+    target_field = "length"
+    strategy = "mismatch_actual_larger"
+    weight = 4.0
+
+    def mutate(self, seed: SomeIpPacket, rng: random.Random) -> MutationResult:
+        raw = seed.to_bytes()
+        actual_length = 8 + len(seed.payload)
+        if actual_length > 8:
+            new_length = rng.randint(8, actual_length - 1)
+        else:
+            # payload 为空时无法在 [8, 7] 取值；退回 [0, 7]
+            new_length = rng.randint(0, 7)
+        new_raw = replace_length_field(raw, new_length)
+        return self._make_raw_result(
+            new_raw,
+            length_value=new_length,
+            actual_length=actual_length,
+            hidden_bytes=actual_length - new_length,
+        )
+
+
+@register_mutator
+class LengthMismatchActualSmallerMutator(BaseMutator):
+    """L1-L05：实际报文 payload 小于 Length 字段所声明（越界读取攻击）。
+
+    保持 raw_bytes 不变，将 Length 改为 actual_length 之上的值。服务端按 Length
+    读取时会越过实际 payload 末尾，进入 receive buffer 后续字节（可能含上次报文
+    残留 / 未初始化栈数据），可读出敏感信息（类似 Heartbleed）。
+
+    扩展量取 [100, 10000]，覆盖单包 / 多包跨边界场景。
+    """
+
+    name = "L1-L05.mismatch_actual_smaller"
+    layer = 1
+    target_field = "length"
+    strategy = "mismatch_actual_smaller"
+    weight = 4.0
+
+    def mutate(self, seed: SomeIpPacket, rng: random.Random) -> MutationResult:
+        raw = seed.to_bytes()
+        actual_length = 8 + len(seed.payload)
+        extra = rng.randint(100, 10000)
+        new_length = actual_length + extra
+        new_raw = replace_length_field(raw, new_length)
+        return self._make_raw_result(
+            new_raw,
+            length_value=new_length,
+            actual_length=actual_length,
+            extra_bytes=extra,
+        )
+
+
+@register_mutator
+class LengthNegativeSignedMutator(BaseMutator):
+    """L1-L06：Length 高位置 1（[0x80000000, 0xFFFFFFFE]，符号位为负）。
+
+    若解析器以 ``int32_t`` 读取 Length 后未做符号检查，路径分歧：
+    - ``size_t buf_size = length;`` → 隐式 sign-extension 后变成超大无符号值
+    - ``length < 0`` 早期返回 → 但若误用 ``length < some_max`` 判断会被绕过
+    - 与 L1-L01 (0xFFFFFFFF) 路径不同：本变异覆盖 [负小, 负大]，触发不同分支
+
+    避开 0xFFFFFFFF 防止与 L1-L01 重合。
+    """
+
+    name = "L1-L06.negative_signed"
+    layer = 1
+    target_field = "length"
+    strategy = "negative_signed"
+
+    def mutate(self, seed: SomeIpPacket, rng: random.Random) -> MutationResult:
+        raw = seed.to_bytes()
+        # 高位 = 1 但避开 0xFFFFFFFF（已被 L1-L01 覆盖）
+        new_length = rng.randint(0x80000000, 0xFFFFFFFE)
+        signed_value = new_length - 0x100000000
+        new_raw = replace_length_field(raw, new_length)
+        return self._make_raw_result(
+            new_raw,
+            length_value=new_length,
+            signed_value=signed_value,
+            actual_length=8 + len(seed.payload),
+        )
+
+
+@register_mutator
+class LengthRandomUint32Mutator(BaseMutator):
+    """L1-L07：Length 取 [0, 0xFFFFFFFF] 内完全随机的 uint32（广撒网）。
+
+    覆盖 L1-L01 ~ L1-L06 未触及的中间区段（如 [8, actual-1] 之外的中等大数 /
+    小到 [0, 7] 但权重不同的随机 / 跨 2^31 边界附近的临界值等）。
+    权重默认 0.5，让定向策略主导。
+    """
+
+    name = "L1-L07.random_uint32"
+    layer = 1
+    target_field = "length"
+    strategy = "random_uint32"
+    weight = 0.5
+
+    def mutate(self, seed: SomeIpPacket, rng: random.Random) -> MutationResult:
+        raw = seed.to_bytes()
+        new_length = rng.randint(0, 0xFFFFFFFF)
+        new_raw = replace_length_field(raw, new_length)
+        return self._make_raw_result(
+            new_raw,
+            length_value=new_length,
+            actual_length=8 + len(seed.payload),
+        )
