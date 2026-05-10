@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-import time
 from pathlib import Path
 
-from PyQt6.QtCore import QTimer, Qt, pyqtSlot
-from PyQt6.QtGui import QAction, QKeySequence, QIcon
+from PyQt6.QtCore import QSettings, QTimer, Qt, pyqtSlot
+from PyQt6.QtGui import QAction, QKeySequence
 from PyQt6.QtWidgets import (
     QFileDialog,
     QLabel,
@@ -23,6 +22,12 @@ from someip_fuzzer.gui.dialogs.about import AboutDialog
 from someip_fuzzer.gui.tab_target import TargetTab
 from someip_fuzzer.gui.widgets.project_tree import ProjectTreeDock
 
+_THEMES = {
+    "深色": "style.qss",
+    "亮色": "style_light.qss",
+}
+_SETTINGS_THEME_KEY = "ui/theme"
+
 
 class _PlaceholderTab(QWidget):
     """尚未实现的 Tab 占位符。"""
@@ -33,7 +38,7 @@ class _PlaceholderTab(QWidget):
         layout = QVBoxLayout(self)
         label = QLabel(f"📦  {name}\n\n（Phase 6 / 7 实现）")
         label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        label.setStyleSheet("color: #585b70; font-size: 16px;")
+        label.setStyleSheet("font-size: 16px;")
         layout.addWidget(label)
 
 
@@ -47,9 +52,9 @@ class MainWindow(QMainWindow):
 
         self.bridge = GuiBridge(self)
         self._stats: dict = {"sent": 0, "crashes": 0, "pps": 0.0}
-        self._start_time: float | None = None
+        self._settings = QSettings("VehSecLabs", "SomeIPFuzzer")
 
-        self._setup_style()
+        self._apply_theme(self._settings.value(_SETTINGS_THEME_KEY, "深色"))
         self._setup_tabs()
         self._setup_toolbar()
         self._setup_menu()
@@ -58,17 +63,19 @@ class MainWindow(QMainWindow):
         self._connect_bridge()
         self._setup_shortcuts()
 
-        # 状态栏时钟
         self._clock_timer = QTimer(self)
         self._clock_timer.timeout.connect(self._update_clock)
         self._clock_timer.start(1000)
 
-    # ── 样式 ──────────────────────────────────────────────────────────────────
+    # ── 样式 / 主题 ───────────────────────────────────────────────────────────
 
-    def _setup_style(self) -> None:
-        qss_path = Path(__file__).parent / "resources" / "style.qss"
+    def _apply_theme(self, theme_name: str) -> None:
+        filename = _THEMES.get(theme_name, "style.qss")
+        qss_path = Path(__file__).parent / "resources" / filename
         if qss_path.exists():
             self.setStyleSheet(qss_path.read_text(encoding="utf-8"))
+        self._current_theme = theme_name
+        self._settings.setValue(_SETTINGS_THEME_KEY, theme_name)
 
     # ── Tab 容器 ──────────────────────────────────────────────────────────────
 
@@ -139,6 +146,14 @@ class MainWindow(QMainWindow):
         m_view.addAction("模糊测试", lambda: self.tab_widget.setCurrentIndex(2))
         m_view.addAction("结果分析", lambda: self.tab_widget.setCurrentIndex(3))
         m_view.addAction("报告生成", lambda: self.tab_widget.setCurrentIndex(4))
+        m_view.addSeparator()
+        m_theme = m_view.addMenu("主题")
+        for theme_name in _THEMES:
+            act = QAction(theme_name, self, checkable=True)
+            act.setChecked(theme_name == self._current_theme)
+            act.triggered.connect(lambda checked, n=theme_name: self._switch_theme(n))
+            m_theme.addAction(act)
+        self._theme_menu = m_theme
 
         # 工具
         m_tools = mb.addMenu("工具(&T)")
@@ -219,6 +234,12 @@ class MainWindow(QMainWindow):
         from datetime import datetime
         self._lbl_clock.setText(datetime.now().strftime("%H:%M:%S"))
 
+    def _switch_theme(self, theme_name: str) -> None:
+        self._apply_theme(theme_name)
+        # 更新菜单勾选状态
+        for act in self._theme_menu.actions():
+            act.setChecked(act.text() == theme_name)
+
     def _action_import(self) -> None:
         path_str, _ = QFileDialog.getOpenFileName(
             self, "导入配置", str(Path.cwd()), "TOML 配置文件 (*.toml)"
@@ -243,6 +264,9 @@ class MainWindow(QMainWindow):
 
     def _show_about(self) -> None:
         AboutDialog(self).exec()
+
+    def current_theme(self) -> str:
+        return self._current_theme
 
 
 def _separator() -> QLabel:
