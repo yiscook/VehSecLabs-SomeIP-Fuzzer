@@ -19,6 +19,8 @@ from PyQt6.QtWidgets import (
 
 from someip_fuzzer.gui.bridge import GuiBridge
 from someip_fuzzer.gui.dialogs.about import AboutDialog
+from someip_fuzzer.gui.tab_analysis import AnalysisTab
+from someip_fuzzer.gui.tab_fuzzer import FuzzerTab
 from someip_fuzzer.gui.tab_target import TargetTab
 from someip_fuzzer.gui.widgets.project_tree import ProjectTreeDock
 
@@ -84,9 +86,11 @@ class MainWindow(QMainWindow):
         self.tab_widget.setTabPosition(QTabWidget.TabPosition.North)
 
         self.tab_target = TargetTab()
+        self.tab_analysis = AnalysisTab()
+        self.tab_fuzzer = FuzzerTab(bridge=self.bridge)
         self.tab_widget.addTab(self.tab_target, "🎯  目标配置")
-        self.tab_widget.addTab(_PlaceholderTab("协议分析"), "🔍  协议分析")
-        self.tab_widget.addTab(_PlaceholderTab("模糊测试"), "⚡  模糊测试")
+        self.tab_widget.addTab(self.tab_analysis, "🔍  协议分析")
+        self.tab_widget.addTab(self.tab_fuzzer, "⚡  模糊测试")
         self.tab_widget.addTab(_PlaceholderTab("结果分析"), "📊  结果分析")
         self.tab_widget.addTab(_PlaceholderTab("报告生成"), "📄  报告生成")
 

@@ -43,3 +43,8 @@ class GuiBridge(QObject):
     @pyqtSlot()
     def pause_fuzzing(self) -> None:
         self.log_message.emit("INFO", "模糊测试已暂停")
+
+    @pyqtSlot(list)
+    def update_mutation_config(self, enabled_names: list[str]) -> None:
+        """接收 GUI 策略树选中的变异器名单，预留给核心引擎调度器同步。"""
+        self.log_message.emit("INFO", f"策略配置更新：{len(enabled_names)} 个变异器启用")
