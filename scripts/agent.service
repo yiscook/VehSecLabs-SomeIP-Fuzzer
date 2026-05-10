@@ -8,7 +8,7 @@ Type=simple
 User=ubuntu-dev
 ExecStart=/usr/bin/python3 /home/ubuntu-dev/scripts/agent.py \
     --port 9999 \
-    --process response-sample \
+    --process hello_world_service \
     --asan-log /tmp/vsomeip_asan.log
 Restart=always
 RestartSec=3

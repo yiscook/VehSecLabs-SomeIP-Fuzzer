@@ -95,12 +95,14 @@ if [ ! -d vsomeip ]; then
 fi
 
 cd vsomeip
-git checkout 3.5.5  # 稳定版
+git checkout 3.7.2  # 3.7.2：兼容 Boost 1.90+（3.5.5 因 boost_system 拆分为 header-only 导致链接失败）
 
 mkdir -p build
 cd build
 cmake -DENABLE_SIGNAL_HANDLING=1 \
       -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+      -DBUILD_EXAMPLES=ON \
+      -DBUILD_SHARED_LIBS=ON \
       ..
 make -j$(nproc)
 sudo make install
