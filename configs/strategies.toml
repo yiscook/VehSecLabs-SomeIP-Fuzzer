@@ -1,0 +1,47 @@
+# SOME/IP 模糊测试变异策略配置
+# 用于 MutationScheduler.apply_strategies_config()
+# 字段说明：
+#   [scheduler].enabled_layers  — 允许调度的 Layer 列表（Layer 1=字段级，Layer 2=语义级）
+#   [weights].<mutator_name>    — 覆盖单个变异器的初始权重（默认 1.0）；权重越大被选中概率越高
+#   [disabled].names            — 黑名单：强制禁用，优先级高于 weights
+
+[scheduler]
+# 同时启用 Layer 1 和 Layer 2
+enabled_layers = [1, 2]
+
+# ── 权重覆盖（示例） ──────────────────────────────────────────────────────────
+# 未列出的变异器使用 BaseMutator.weight 默认值（1.0）
+[weights]
+# Length 类高危变异策略，权重抬高以增加攻击覆盖
+"L1-L01.overflow_4byte_max"    = 5.0
+"L1-L02.underflow_too_small"   = 5.0
+"L1-L03.zero"                  = 3.0
+"L1-L04.mismatch_actual_larger"  = 4.0
+"L1-L05.mismatch_actual_smaller" = 4.0
+
+# 纯随机策略适当降权，让定向策略主导
+"L1-S05.random_uniform"  = 0.5
+"L1-P01.random_bytes"    = 0.5
+
+# ── Layer 2.3 字符串语义（L2-S）────────────────────────────────────────────────
+# format_string / very_long 触发常见漏洞，权重提高
+"L2-S04.format_string"      = 1.5
+"L2-S05.very_long"          = 1.5
+
+# ── Layer 2.5 字段间约束破坏（L2-C）────────────────────────────────────────────
+# length_payload_inconsistent 直接影响内存安全，设最高权重
+"L2-C01.length_payload_inconsistent" = 2.0
+
+# ── Layer 2.6 SD Entry/Option 语义变异（L2-SD）──────────────────────────────────
+# excessive_entries 生成大 payload，略降权避免频繁打满网络
+"L2-SD03.excessive_entries" = 0.8
+# option_index_oob / invalid_entry_type 覆盖 SD 解析高危路径
+"L2-SD04.option_index_oob"  = 1.5
+"L2-SD01.invalid_entry_type" = 1.5
+
+# ── 黑名单 ───────────────────────────────────────────────────────────────────
+# 将变异器名字加入此列表可临时禁用（权重强制归零，优先级高于 weights 覆盖）
+[disabled]
+names = [
+    # "L1-P05.overflow_huge",    # 示例：临时禁用超大 payload（防止误触靶机 OOM）
+]
