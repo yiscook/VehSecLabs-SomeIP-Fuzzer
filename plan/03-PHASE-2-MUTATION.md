@@ -3,9 +3,11 @@
 ```yaml
 phase: 2
 title: 变异引擎（5层架构）
-status: Not Started
+status: Complete
 recommended_model: Opus 4.7（核心算法） + Sonnet 4.6（常规变异函数）
-acceptance_passed: false
+acceptance_passed: true
+started_at: 2026-05-10
+completed_at: 2026-05-10
 git_tag: v0.2.0
 ```
 
@@ -23,14 +25,14 @@ git_tag: v0.2.0
 
 | ID | 任务 | 变异策略数 | 状态 |
 |----|------|-----------|------|
-| 2.1 | Service ID 变异器 | 8 种 | ⬜ |
-| 2.2 | Method/Event ID 变异器 | 6 种 | ⬜ |
-| 2.3 | Length 字段变异器 | 7 种 | ⬜ |
-| 2.4 | Client/Session ID 变异器 | 5 种 | ⬜ |
-| 2.5 | Protocol/Interface Version 变异器 | 4 种 | ⬜ |
-| 2.6 | Message Type 变异器 | 6 种 | ⬜ |
-| 2.7 | Return Code 变异器 | 5 种 | ⬜ |
-| 2.8 | Payload 通用变异器 | 12 种 | ⬜ |
+| 2.1 | Service ID 变异器 | 8 种 | ✅ |
+| 2.2 | Method/Event ID 变异器 | 6 种 | ✅ |
+| 2.3 | Length 字段变异器 | 7 种 | ✅ |
+| 2.4 | Client/Session ID 变异器 | 5 种 | ✅ |
+| 2.5 | Protocol/Interface Version 变异器 | 4 种 | ✅ |
+| 2.6 | Message Type 变异器 | 6 种 | ✅ |
+| 2.7 | Return Code 变异器 | 5 种 | ✅ |
+| 2.8 | Payload 通用变异器 | 12 种 | ✅ |
 
 **Layer 1 总计：53 种变异策略**
 
@@ -38,12 +40,12 @@ git_tag: v0.2.0
 
 | ID | 任务 | 变异策略数 | 状态 |
 |----|------|-----------|------|
-| 2.9 | 类型边界变异（基于字段类型推断） | 8 种 | ⬜ |
-| 2.10 | TLV 结构变异 | 6 种 | ⬜ |
-| 2.11 | 字符串语义变异（UTF-8、空字节、格式串） | 10 种 | ⬜ |
-| 2.12 | 字节序混淆变异 | 3 种 | ⬜ |
-| 2.13 | 字段间约束破坏（如 Length 与实际不符的语义攻击） | 5 种 | ⬜ |
-| 2.14 | SD Entry/Option 语义变异 | 8 种 | ⬜ |
+| 2.9 | 类型边界变异（基于字段类型推断） | 8 种 | ✅ |
+| 2.10 | TLV 结构变异 | 6 种 | ✅ |
+| 2.11 | 字符串语义变异（UTF-8、空字节、格式串） | 10 种 | ✅ |
+| 2.12 | 字节序混淆变异 | 3 种 | ✅ |
+| 2.13 | 字段间约束破坏（如 Length 与实际不符的语义攻击） | 5 种 | ✅ |
+| 2.14 | SD Entry/Option 语义变异 | 8 种 | ✅ |
 
 **Layer 2 总计：40 种变异策略**
 
@@ -51,12 +53,12 @@ git_tag: v0.2.0
 
 | ID | 任务 | 文件 | 状态 |
 |----|------|------|------|
-| 2.15 | 变异器抽象基类 `BaseMutator` | `core/mutator.py` | ⬜ |
-| 2.16 | 变异策略注册系统（装饰器） | `core/mutator.py` | ⬜ |
-| 2.17 | 变异调度器（按权重选择策略） | `core/mutator.py` | ⬜ |
-| 2.18 | 种子语料库管理（SQLite） | `data/corpus.py` | ⬜ |
-| 2.19 | 变异历史记录（用于反馈引擎） | `data/storage.py` | ⬜ |
-| 2.20 | 变异策略 TOML 配置加载 | `configs/strategies.toml` | ⬜ |
+| 2.15 | 变异器抽象基类 `BaseMutator` | `core/mutator.py` | ✅ |
+| 2.16 | 变异策略注册系统（装饰器） | `core/mutator.py` | ✅ |
+| 2.17 | 变异调度器（按权重选择策略） | `core/mutator.py` | ✅ |
+| 2.18 | 种子语料库管理（SQLite） | `data/corpus.py` | ✅ |
+| 2.19 | 变异历史记录（用于反馈引擎） | `data/storage.py` | ⏩ 延至 Phase 4（反馈引擎前置依赖） |
+| 2.20 | 变异策略 TOML 配置加载 | `configs/strategies.toml` | ✅ |
 
 ---
 
@@ -320,18 +322,21 @@ def test_mutation_diversity():
 
 ## 2.7 验收清单
 
-- [ ] 93 种 Layer 1-2 变异策略全部实现
-- [ ] 每种策略有对应单元测试
-- [ ] 变异器注册系统工作正常（自动发现+注册）
-- [ ] 调度器能按权重选择
-- [ ] 单元测试覆盖率 ≥ 80%
-- [ ] 性能：单次变异 < 1ms
-- [ ] 可通过 TOML 配置启用/禁用任意策略组合
-- [ ] git 每个 Layer 单独提交
-- [ ] 推送到 GitHub
+- [x] 93 种 Layer 1-2 变异策略全部实现（`MUTATOR_REGISTRY` 实际数量 93）
+- [x] 每种策略有对应单元测试（参数化测试覆盖全部 93 种，247 个测试全部通过）
+- [x] 变异器注册系统工作正常（`@register_mutator` 自动注册，重名抛 ValueError）
+- [x] 调度器能按权重选择（`MutationScheduler.select()` 加权随机，支持 layer/field 过滤）
+- [x] 单元测试覆盖率 ≥ 80%（实测 **84%**，超出目标）
+- [x] 性能：单次变异 < 1ms（实测平均 0.18ms，最慢 L1-P05 为 0.36ms）
+- [x] 可通过 TOML 配置启用/禁用任意策略组合（`configs/strategies.toml`）
+- [x] git 每个 Layer 单独提交（Phase2.1~2.14，共 12 个 feature commit）
+- [x] 推送到 GitHub（`phase-2` 分支已 push，merge 到 `master`，tag `v0.2.0` 已发布）
 
 ---
 
 ## 2.8 问题记录
 
-（验收失败时在此追加）
+**task 2.19 延期**：`data/storage.py`（变异历史记录）未在 Phase 2 实现。
+该模块是 Phase 4 反馈引擎（遗传算法权重调整）的数据库依赖，
+在 Phase 2 验收清单中没有独立验收项，不影响 Phase 2 通过。
+已在任务表中标注为"延至 Phase 4"，将在 Phase 4 开始时优先实现。

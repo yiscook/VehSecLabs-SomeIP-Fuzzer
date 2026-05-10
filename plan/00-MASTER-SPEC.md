@@ -48,9 +48,9 @@
 
 | 阶段 | 内容 | 推荐模型 | 状态 |
 |------|------|---------|------|
-| Phase 0 | 项目初始化（uv、git、目录） | Haiku | ⬜ Not Started |
-| Phase 1 | 协议核心层（报文构造、传输） | Sonnet | ⬜ Not Started |
-| Phase 2 | 变异引擎（5 层变异） | **Opus** + Sonnet | ⬜ Not Started |
+| Phase 0 | 项目初始化（uv、git、目录） | Haiku | ✅ Complete (2026-05-10) |
+| Phase 1 | 协议核心层（报文构造、传输） | Sonnet | ✅ Complete (2026-05-10, v0.1.0) |
+| Phase 2 | 变异引擎（5 层变异） | **Opus** + Sonnet | ✅ Complete (2026-05-10, v0.2.0) |
 | Phase 3 | 状态机 + 攻击链 | **Opus** + Sonnet | ⬜ Not Started |
 | Phase 4 | 反馈引擎 + 崩溃检测 + 重放 | **Opus** + Sonnet | ⬜ Not Started |
 | Phase 5 | GUI 框架 + 目标配置 | Sonnet | ⬜ Not Started |
