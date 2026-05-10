@@ -326,6 +326,33 @@ class MutationScheduler:
         """列出所有变异器实例（含已禁用）。"""
         return list(self._mutators)
 
+    def apply_strategies_config(self, config: object) -> None:
+        """从 :class:`~someip_fuzzer.utils.config.StrategiesConfig` 批量调整权重。
+
+        按如下优先级应用：
+        1. ``config.disabled`` 里的名字权重归零；
+        2. ``config.weights`` 里的名字覆盖权重；
+        3. 不在 ``config.enabled_layers`` 里的 layer 变异器全部禁用。
+
+        ``config`` 接受 duck-typing，只要有 ``enabled_layers``、``weights``、
+        ``disabled`` 三个属性即可，方便测试时注入 mock 对象。
+        """
+        # 先按 enabled_layers 过滤：layer 不在列表内一律禁用
+        enabled = set(config.enabled_layers)  # type: ignore[attr-defined]
+        for m in self._mutators:
+            if m.layer not in enabled:
+                self._weights[m.name] = 0.0
+
+        # 再应用 weights 覆盖（跳过不在注册表内的名字，防止 typo 导致崩溃）
+        for name, w in config.weights.items():  # type: ignore[attr-defined]
+            if name in self._weights:
+                self._weights[name] = float(w)
+
+        # 最后禁用黑名单（优先级最高，覆盖前两步）
+        for name in config.disabled:  # type: ignore[attr-defined]
+            if name in self._weights:
+                self._weights[name] = 0.0
+
     def __len__(self) -> int:
         """注册表中变异器总数（含已禁用）。"""
         return len(self._mutators)
