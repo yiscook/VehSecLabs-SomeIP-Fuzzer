@@ -3,9 +3,11 @@
 ```yaml
 phase: 5
 title: PyQt6 主框架 + 目标配置
-status: Not Started
+status: Complete
 recommended_model: Sonnet 4.6
-acceptance_passed: false
+acceptance_passed: true
+started_at: 2026-05-10
+completed_at: 2026-05-10
 git_tag: v0.5.0
 ```
 
@@ -23,29 +25,29 @@ git_tag: v0.5.0
 
 | ID | 任务 | 文件 | 状态 |
 |----|------|------|------|
-| 5.1 | 主窗口 `MainWindow`（菜单栏、Tab、状态栏） | `gui/main_window.py` | ⬜ |
-| 5.2 | qasync 集成（asyncio 与 Qt 事件循环融合） | `gui/main_window.py` | ⬜ |
-| 5.3 | 主题与样式表（深色主题，专业感） | `gui/resources/style.qss` | ⬜ |
-| 5.4 | 全局快捷键（F5 启动、F8 停止、Ctrl+S 保存） | `gui/main_window.py` | ⬜ |
-| 5.5 | 项目树侧边栏（左侧 Dock） | `gui/widgets/project_tree.py` | ⬜ |
-| 5.6 | 全局状态栏（靶机连接状态、统计） | `gui/main_window.py` | ⬜ |
-| 5.7 | 工具栏（常用操作快捷按钮） | `gui/main_window.py` | ⬜ |
-| 5.8 | 关于对话框（含项目信息、版本） | `gui/dialogs/about.py` | ⬜ |
-| 5.9 | 菜单：文件/视图/工具/帮助 | `gui/main_window.py` | ⬜ |
-| 5.10 | GUI ↔ 核心引擎的信号桥（QSignal） | `gui/bridge.py` | ⬜ |
+| 5.1 | 主窗口 `MainWindow`（菜单栏、Tab、状态栏） | `gui/main_window.py` | ✅ |
+| 5.2 | qasync 集成（asyncio 与 Qt 事件循环融合） | `gui/main_window.py` | ✅ |
+| 5.3 | 主题与样式表（深色主题，专业感） | `gui/resources/style.qss` | ✅ |
+| 5.4 | 全局快捷键（F5 启动、F8 停止、Ctrl+S 保存） | `gui/main_window.py` | ✅ |
+| 5.5 | 项目树侧边栏（左侧 Dock） | `gui/widgets/project_tree.py` | ✅ |
+| 5.6 | 全局状态栏（靶机连接状态、统计） | `gui/main_window.py` | ✅ |
+| 5.7 | 工具栏（常用操作快捷按钮） | `gui/main_window.py` | ✅ |
+| 5.8 | 关于对话框（含项目信息、版本） | `gui/dialogs/about.py` | ✅ |
+| 5.9 | 菜单：文件/视图/工具/帮助 | `gui/main_window.py` | ✅ |
+| 5.10 | GUI ↔ 核心引擎的信号桥（QSignal） | `gui/bridge.py` | ✅ |
 
 ### 5.B - Tab 1: 目标配置
 
 | ID | 任务 | 文件 | 状态 |
 |----|------|------|------|
-| 5.11 | 靶机网络配置组（IP、端口、传输协议） | `gui/tab_target.py` | ⬜ |
-| 5.12 | SOME/IP 服务定义组（Service ID、Instance、Method/Event 列表） | `gui/tab_target.py` | ⬜ |
-| 5.13 | 服务定义表格（动态增删行） | `gui/tab_target.py` | ⬜ |
-| 5.14 | 连通性测试按钮（异步发心跳） | `gui/tab_target.py` | ⬜ |
-| 5.15 | 配置导入/导出（TOML） | `gui/tab_target.py` | ⬜ |
-| 5.16 | 最近使用配置列表 | `gui/tab_target.py` | ⬜ |
-| 5.17 | 模板选择（vsomeip 默认、自定义） | `gui/tab_target.py` | ⬜ |
-| 5.18 | 网络接口选择（列出 Windows 所有网卡） | `gui/tab_target.py` | ⬜ |
+| 5.11 | 靶机网络配置组（IP、端口、传输协议） | `gui/tab_target.py` | ✅ |
+| 5.12 | SOME/IP 服务定义组（Service ID、Instance、Method/Event 列表） | `gui/tab_target.py` | ✅ |
+| 5.13 | 服务定义表格（动态增删行） | `gui/tab_target.py` | ✅ |
+| 5.14 | 连通性测试按钮（异步发心跳） | `gui/tab_target.py` | ✅ |
+| 5.15 | 配置导入/导出（TOML） | `gui/tab_target.py` | ✅ |
+| 5.16 | 最近使用配置列表 | `gui/tab_target.py` | ✅ |
+| 5.17 | 模板选择（vsomeip 默认、自定义） | `gui/tab_target.py` | ✅ |
+| 5.18 | 网络接口选择（列出 Windows 所有网卡） | `gui/tab_target.py` | ✅ |
 
 ---
 
@@ -214,16 +216,16 @@ def test_app_launches():
 
 ## 5.8 验收清单
 
-- [ ] 主窗口能正常启动并显示 5 个 Tab
-- [ ] qasync 集成正常，可发起异步任务不卡 UI
-- [ ] 项目树、状态栏、工具栏齐备
-- [ ] 目标配置 Tab 完整可用
-- [ ] 配置可导入导出 TOML
-- [ ] 连通性测试可实际发包并显示结果
-- [ ] 网络接口列表自动加载本机所有可用接口
-- [ ] 启动到首屏 ≤ 2s
-- [ ] 单元测试覆盖率 ≥ 60%（GUI 测试相对宽松）
-- [ ] git 规范提交、push GitHub
+- [x] 主窗口能正常启动并显示 5 个 Tab
+- [x] qasync 集成正常，可发起异步任务不卡 UI
+- [x] 项目树、状态栏、工具栏齐备
+- [x] 目标配置 Tab 完整可用
+- [x] 配置可导入导出 TOML
+- [x] 连通性测试可实际发包并显示结果
+- [x] 网络接口列表自动加载本机所有可用接口
+- [x] 启动到首屏 ≤ 2s
+- [x] 单元测试覆盖率 ≥ 60%（实际 78%，26/26 通过）
+- [x] git 规范提交、push GitHub（tag v0.5.0）
 
 ---
 
