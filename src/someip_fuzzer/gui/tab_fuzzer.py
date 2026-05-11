@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
 from PyQt6.QtCore import Qt, pyqtSlot
@@ -214,7 +215,11 @@ class FuzzerTab(QWidget):
     # ── 辅助：加载攻击链 YAML ─────────────────────────────────────────────────
 
     def _load_attack_chains(self) -> None:
-        chains_dir = Path(__file__).parents[3] / "configs" / "attack_chains"
+        if getattr(sys, "frozen", False):
+            base = Path(getattr(sys, "_MEIPASS", Path(sys.executable).parent))
+        else:
+            base = Path(__file__).parents[3]
+        chains_dir = base / "configs" / "attack_chains"
         if not chains_dir.exists():
             return
         for yaml_file in sorted(chains_dir.glob("*.yaml")):
