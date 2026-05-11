@@ -238,7 +238,7 @@ class MainWindow(QMainWindow):
         crashes = self._stats.get("crashes", 0) + 1
         self._stats["crashes"] = crashes
         self._lbl_crashes.setText(f"崩溃: {crashes}")
-        self.statusBar().showMessage(f"⚠️  检测到崩溃！{info}", 8000)
+        self.statusBar().showMessage(f"[CRASH] 检测到崩溃！{info}", 8000)
 
     @pyqtSlot(bool, str)
     def _on_connectivity_result(self, ok: bool, target: str) -> None:

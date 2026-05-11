@@ -78,7 +78,7 @@ class GuiBridge(QObject):
         self._task.add_done_callback(self._on_engine_done)
         self.log_message.emit(
             "INFO",
-            f"▶ 模糊测试已启动 → {self._config.target.ip}:{self._config.target.port}",
+            f"模糊测试已启动 -> {self._config.target.ip}:{self._config.target.port}",
         )
         self.connectivity_result.emit(
             True, f"{self._config.target.ip}:{self._config.target.port}"
@@ -90,7 +90,7 @@ class GuiBridge(QObject):
             return
         if self._stop_event:
             self._stop_event.set()
-        self.log_message.emit("INFO", "⏹ 正在停止…")
+        self.log_message.emit("INFO", "正在停止…")
 
     @pyqtSlot()
     def pause_fuzzing(self) -> None:
@@ -98,10 +98,10 @@ class GuiBridge(QObject):
             return
         if self._pause_event.is_set():
             self._pause_event.clear()
-            self.log_message.emit("INFO", "▶ 继续模糊测试")
+            self.log_message.emit("INFO", "继续模糊测试")
         else:
             self._pause_event.set()
-            self.log_message.emit("INFO", "⏸ 模糊测试已暂停")
+            self.log_message.emit("INFO", "模糊测试已暂停")
 
     @pyqtSlot(list)
     def update_mutation_config(self, enabled_names: list[str]) -> None:
@@ -114,7 +114,7 @@ class GuiBridge(QObject):
         self._running = False
         self.connectivity_result.emit(False, "")
         if task.cancelled():
-            self.log_message.emit("INFO", "⏹ 模糊测试已取消")
+            self.log_message.emit("INFO", "模糊测试已取消")
             return
         exc = task.exception()
         if exc:

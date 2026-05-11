@@ -87,7 +87,7 @@ class FuzzingEngine:
 
         bridge.log_message.emit(
             "INFO",
-            f"▶ 并行发包，种子 {len(seeds)} 颗，变异器 {len(scheduler)} 个"
+            f"并行发包，种子 {len(seeds)} 颗，变异器 {len(scheduler)} 个"
         )
 
         # ── 三协程并发 ────────────────────────────────────────────────────────
@@ -115,8 +115,11 @@ class FuzzingEngine:
             )
             if pcap_path and shared.get("pcap_packets"):
                 try:
-                    from someip_fuzzer.utils.pcap import save_pcap
-                    save_pcap(shared["pcap_packets"], pcap_path)
+                    from someip_fuzzer.utils.pcap import save_raw_pcap
+                    save_raw_pcap(
+                        shared["pcap_packets"], pcap_path,
+                        dst_ip=target[0], dst_port=target[1],
+                    )
                     bridge.log_message.emit("INFO", f"pcap 已保存：{pcap_path}")
                 except Exception as exc:
                     bridge.log_message.emit("ERROR", f"pcap 保存失败：{exc}")
@@ -155,14 +158,14 @@ class FuzzingEngine:
                         await transport.send(result.packet)
                         bridge.packet_sent.emit(result.packet)
                         if shared["pcap_packets"] is not None:
-                            shared["pcap_packets"].append(result.packet)
+                            shared["pcap_packets"].append(result.raw_bytes)
                     else:
                         await transport.send_raw(result.raw_bytes)
+                        if shared["pcap_packets"] is not None:
+                            shared["pcap_packets"].append(result.raw_bytes)
                         try:
                             parsed = SomeIpPacket.from_bytes(result.raw_bytes)
                             bridge.packet_sent.emit(parsed)
-                            if shared["pcap_packets"] is not None:
-                                shared["pcap_packets"].append(parsed)
                         except Exception:
                             pass
                 except Exception as exc:
@@ -280,7 +283,7 @@ class FuzzingEngine:
                             })
 
                     bridge.log_message.emit(
-                        "ERROR", f"⚠️ 靶机崩溃！severity={severity}"
+                        "ERROR", f"[CRASH] 靶机崩溃！severity={severity}"
                     )
 
         except asyncio.CancelledError:

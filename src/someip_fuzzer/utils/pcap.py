@@ -77,17 +77,52 @@ def load_pcap(path: str | Path) -> list[SomeIpPacket]:
 
 def save_pcap(packets: list[SomeIpPacket], path: str | Path) -> None:
     """将 SomeIpPacket 列表保存为 pcap 文件。"""
+    raw_list = []
+    for p in packets:
+        try:
+            raw_list.append(p.to_bytes())
+        except Exception:
+            pass
+    save_raw_pcap(raw_list, path)
+
+
+def save_raw_pcap(
+    raw_packets: list[bytes],
+    path: str | Path,
+    dst_ip: str = "127.0.0.1",
+    dst_port: int = 30509,
+    src_ip: str = "127.0.0.1",
+) -> None:
+    """将原始字节列表保存为 pcap 文件（使用实际目标 IP/端口）。
+
+    自动截断超过 UDP 最大载荷（65507 字节）的包，跳过无法构建的包。
+    """
     from scapy.layers.inet import IP
     from scapy.layers.l2 import Ether
+
+    _MAX_UDP_PAYLOAD = 65507  # 65535 - 20(IP header) - 8(UDP header)
 
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
 
     scapy_pkts = []
-    for p in packets:
-        raw = p.to_bytes()
-        scapy_pkt = Ether() / IP() / UDP(dport=30509) / raw
-        scapy_pkts.append(scapy_pkt)
+    skipped = 0
+    for raw in raw_packets:
+        try:
+            if len(raw) > _MAX_UDP_PAYLOAD:
+                raw = raw[:_MAX_UDP_PAYLOAD]
+            pkt = (
+                Ether()
+                / IP(src=src_ip, dst=dst_ip)
+                / UDP(sport=12345, dport=dst_port)
+                / raw
+            )
+            scapy_pkts.append(pkt)
+        except Exception:
+            skipped += 1
 
     wrpcap(str(path), scapy_pkts)
-    logger.info(f"Saved {len(packets)} packets to {path}")
+    logger.info(
+        f"Saved {len(scapy_pkts)} packets to {path}"
+        + (f" (skipped {skipped})" if skipped else "")
+    )
