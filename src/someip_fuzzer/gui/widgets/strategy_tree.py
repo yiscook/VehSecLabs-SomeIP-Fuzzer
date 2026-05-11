@@ -34,7 +34,7 @@ class StrategyTreeWidget(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(4)
 
-        layout.addWidget(QLabel("📚  变异策略"))
+        layout.addWidget(QLabel("变异策略"))
         layout.addWidget(self._tree)
 
         btn_row = QHBoxLayout()

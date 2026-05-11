@@ -49,7 +49,7 @@ class ProjectTreeDock(QDockWidget):
         self._populate_placeholder()
 
     def _populate_placeholder(self) -> None:
-        sessions = QTreeWidgetItem(self._tree, ["📁 测试会话"])
+        sessions = QTreeWidgetItem(self._tree, ["测试会话"])
         sessions.setExpanded(True)
         QTreeWidgetItem(sessions, ["（暂无历史记录）"])
 

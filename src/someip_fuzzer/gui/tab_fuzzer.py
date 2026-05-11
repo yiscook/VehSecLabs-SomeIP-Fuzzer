@@ -9,11 +9,14 @@ from pathlib import Path
 
 from PyQt6.QtCore import Qt, pyqtSlot
 from PyQt6.QtWidgets import (
+    QCheckBox,
     QComboBox,
     QDoubleSpinBox,
+    QFileDialog,
     QGroupBox,
     QHBoxLayout,
     QLabel,
+    QLineEdit,
     QPushButton,
     QSpinBox,
     QSplitter,
@@ -73,7 +76,7 @@ class FuzzerTab(QWidget):
         layout.addWidget(self.strategy_tree, stretch=1)
 
         # 攻击链选择
-        grp_chain = QGroupBox("📋  攻击链")
+        grp_chain = QGroupBox("攻击链")
         chain_layout = QVBoxLayout(grp_chain)
         self.cmb_chain = QComboBox()
         self.cmb_chain.addItem("无（纯变异）", userData=None)
@@ -82,7 +85,7 @@ class FuzzerTab(QWidget):
         layout.addWidget(grp_chain)
 
         # 测试参数
-        grp_params = QGroupBox("⚙️  测试参数")
+        grp_params = QGroupBox("测试参数")
         params_layout = QVBoxLayout(grp_params)
 
         row_cases = QHBoxLayout()
@@ -112,15 +115,35 @@ class FuzzerTab(QWidget):
 
         layout.addWidget(grp_params)
 
+        # pcap 导出选项
+        grp_pcap = QGroupBox("抓包导出")
+        pcap_layout = QVBoxLayout(grp_pcap)
+        self.chk_pcap = QCheckBox("保存为 pcap 文件")
+        pcap_layout.addWidget(self.chk_pcap)
+        row_pcap = QHBoxLayout()
+        self.edit_pcap_path = QLineEdit()
+        self.edit_pcap_path.setPlaceholderText("输出路径…")
+        self.edit_pcap_path.setEnabled(False)
+        self.btn_pcap_browse = QPushButton("…")
+        self.btn_pcap_browse.setFixedWidth(30)
+        self.btn_pcap_browse.setEnabled(False)
+        self.btn_pcap_browse.clicked.connect(self._browse_pcap_path)
+        row_pcap.addWidget(self.edit_pcap_path)
+        row_pcap.addWidget(self.btn_pcap_browse)
+        pcap_layout.addLayout(row_pcap)
+        self.chk_pcap.toggled.connect(self.edit_pcap_path.setEnabled)
+        self.chk_pcap.toggled.connect(self.btn_pcap_browse.setEnabled)
+        layout.addWidget(grp_pcap)
+
         # 启停按钮
-        self.btn_start = QPushButton("▶  开始  F5")
+        self.btn_start = QPushButton("开始 (F5)")
         self.btn_start.setObjectName("btn_primary")
         self.btn_start.clicked.connect(self.start_fuzzing)
 
-        self.btn_pause = QPushButton("⏸  暂停  F7")
+        self.btn_pause = QPushButton("暂停 (F7)")
         self.btn_pause.clicked.connect(self.pause_fuzzing)
 
-        self.btn_stop = QPushButton("⏹  停止  F8")
+        self.btn_stop = QPushButton("停止 (F8)")
         self.btn_stop.setObjectName("btn_danger")
         self.btn_stop.clicked.connect(self.stop_fuzzing)
 
@@ -137,7 +160,7 @@ class FuzzerTab(QWidget):
         layout.setSpacing(4)
 
         # 报文流（占主要空间）
-        grp_stream = QGroupBox("⚡  实时报文流")
+        grp_stream = QGroupBox("实时报文流")
         stream_layout = QVBoxLayout(grp_stream)
         stream_layout.setContentsMargins(4, 4, 4, 4)
         self.packet_stream = PacketStreamWidget()
@@ -161,7 +184,7 @@ class FuzzerTab(QWidget):
         layout.setSpacing(8)
 
         # 实时图表
-        grp_chart = QGroupBox("📊  实时统计")
+        grp_chart = QGroupBox("实时统计")
         chart_layout = QVBoxLayout(grp_chart)
         chart_layout.setContentsMargins(4, 4, 4, 4)
         self.stats_charts = StatsChartsWidget()
@@ -169,7 +192,7 @@ class FuzzerTab(QWidget):
         layout.addWidget(grp_chart)
 
         # 状态机可视化
-        grp_state = QGroupBox("🔄  状态机")
+        grp_state = QGroupBox("状态机")
         state_layout = QVBoxLayout(grp_state)
         state_layout.setContentsMargins(4, 4, 4, 4)
         self.state_view = StateViewWidget()
@@ -178,6 +201,15 @@ class FuzzerTab(QWidget):
 
         layout.addStretch()
         return panel
+
+    # ── 辅助：pcap 路径浏览 ──────────────────────────────────────────────────
+
+    def _browse_pcap_path(self) -> None:
+        path_str, _ = QFileDialog.getSaveFileName(
+            self, "保存 pcap", str(Path.cwd() / "fuzzing.pcapng"), "PCAP 文件 (*.pcapng *.pcap)"
+        )
+        if path_str:
+            self.edit_pcap_path.setText(path_str)
 
     # ── 辅助：加载攻击链 YAML ─────────────────────────────────────────────────
 
@@ -249,6 +281,10 @@ class FuzzerTab(QWidget):
         self.stats_charts.start()
         self.log_view.append("INFO", "模糊测试已启动")
         if self._bridge:
+            if self.chk_pcap.isChecked() and self.edit_pcap_path.text().strip():
+                self._bridge.set_pcap_path(Path(self.edit_pcap_path.text().strip()))
+            else:
+                self._bridge.set_pcap_path(None)
             self._bridge.start_fuzzing()
 
     @pyqtSlot()

@@ -56,8 +56,9 @@ _DEFAULT_TEMPLATES: dict[str, AppConfig] = {
 class TargetTab(QWidget):
     """Tab 1：目标配置。"""
 
-    def __init__(self, parent=None) -> None:
+    def __init__(self, bridge=None, parent=None) -> None:
         super().__init__(parent)
+        self._bridge = bridge
         self._recent_configs: list[Path] = []
         self._current_path: Path | None = None
 
@@ -73,7 +74,7 @@ class TargetTab(QWidget):
     # ── 靶机网络配置组 ────────────────────────────────────────────────────────
 
     def _build_network_group(self) -> QGroupBox:
-        grp = QGroupBox("📡  靶机网络配置")
+        grp = QGroupBox("靶机网络配置")
         layout = QVBoxLayout(grp)
         layout.setSpacing(8)
 
@@ -138,7 +139,7 @@ class TargetTab(QWidget):
 
         # 连通性测试
         row_ping = QHBoxLayout()
-        self.btn_ping = QPushButton("🔌  连通性测试")
+        self.btn_ping = QPushButton("连通性测试")
         self.btn_ping.setObjectName("btn_primary")
         self.btn_ping.setFixedWidth(140)
         self.btn_ping.clicked.connect(self._on_ping_clicked)
@@ -153,7 +154,7 @@ class TargetTab(QWidget):
     # ── 服务定义表格组 ────────────────────────────────────────────────────────
 
     def _build_services_group(self) -> QGroupBox:
-        grp = QGroupBox("📋  SOME/IP 服务定义")
+        grp = QGroupBox("SOME/IP 服务定义")
         layout = QVBoxLayout(grp)
         layout.setSpacing(6)
 
@@ -183,7 +184,7 @@ class TargetTab(QWidget):
     # ── 配置管理组 ────────────────────────────────────────────────────────────
 
     def _build_config_group(self) -> QGroupBox:
-        grp = QGroupBox("💾  配置管理")
+        grp = QGroupBox("配置管理")
         layout = QHBoxLayout(grp)
         layout.setSpacing(10)
 
@@ -195,16 +196,16 @@ class TargetTab(QWidget):
 
         layout.addSpacing(16)
 
-        self.btn_import = QPushButton("📥  导入 TOML")
+        self.btn_import = QPushButton("导入 TOML")
         self.btn_import.clicked.connect(self._import_config)
-        self.btn_export = QPushButton("📤  导出 TOML")
+        self.btn_export = QPushButton("导出 TOML")
         self.btn_export.clicked.connect(self._export_config)
         layout.addWidget(self.btn_import)
         layout.addWidget(self.btn_export)
 
         layout.addSpacing(16)
         self.lbl_current_path = QLabel("（未保存）")
-        self.lbl_current_path.setStyleSheet("color: #a6adc8; font-size: 11px;")
+        self.lbl_current_path.setStyleSheet("color: #8C959F; font-size: 11px;")
         layout.addWidget(self.lbl_current_path)
         layout.addStretch()
 
@@ -235,28 +236,48 @@ class TargetTab(QWidget):
     def _do_ping(self) -> None:
         ip = self.cmb_ip.currentText().strip()
         port = self.spin_port.value()
+        target_str = f"{ip}:{port}"
+        ok = False
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             sock.settimeout(2.0)
-            # 发送 SOME/IP 心跳探针（最小合法 16 字节头）
-            probe = bytes.fromhex("12340001" "00000008" "deadbeef" "00000101")
+            # 发送配置的第一个 Service ID 探针（16 字节头）
+            svc_id = 0x1111
+            if self.tbl_services.rowCount() > 0:
+                item = self.tbl_services.item(0, 0)
+                if item:
+                    try:
+                        svc_id = int(item.text().strip(), 16)
+                    except ValueError:
+                        pass
+            probe = bytes([
+                (svc_id >> 8) & 0xFF, svc_id & 0xFF,  # Service ID
+                0x00, 0x01,                              # Method ID
+                0x00, 0x00, 0x00, 0x08,                 # Length
+                0xDE, 0xAD, 0xBE, 0xEF,                 # Client/Session ID
+                0x01, 0x01, 0x00, 0x00,                 # Proto/Iface/Type/RC
+            ])
             sock.sendto(probe, (ip, port))
             try:
                 sock.recvfrom(256)
                 self.lbl_ping_result.setObjectName("label_status_ok")
-                self.lbl_ping_result.setText(f"✅  {ip}:{port} 已响应")
+                self.lbl_ping_result.setText(f"{target_str} — 已响应")
+                ok = True
             except socket.timeout:
-                # 无响应但未拒绝连接，视为可达（UDP 无 ICMP 错误）
+                # UDP 无响应是正常的 — vsomeip 静默丢弃未知服务请求
                 self.lbl_ping_result.setObjectName("label_status_ok")
-                self.lbl_ping_result.setText(f"⚠️  {ip}:{port} 已发送，等待响应超时（UDP）")
+                self.lbl_ping_result.setText(f"{target_str} — 端口可达（UDP 无响应属正常）")
+                ok = True
             finally:
                 sock.close()
         except OSError as exc:
             self.lbl_ping_result.setObjectName("label_status_err")
-            self.lbl_ping_result.setText(f"❌  连接失败：{exc}")
+            self.lbl_ping_result.setText(f"连接失败：{exc}")
         self.lbl_ping_result.style().unpolish(self.lbl_ping_result)
         self.lbl_ping_result.style().polish(self.lbl_ping_result)
         self.btn_ping.setEnabled(True)
+        if self._bridge is not None:
+            self._bridge.connectivity_result.emit(ok, target_str if ok else "")
 
     # ── 辅助：表格增删行 ──────────────────────────────────────────────────────
 

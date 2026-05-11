@@ -53,6 +53,7 @@ class FuzzingEngine:
         pause_event: asyncio.Event | None = None,
         enabled_mutators: list[str] | None = None,
         db_path: Path | str = _DEFAULT_DB,
+        pcap_path: Path | None = None,
     ) -> None:
         target = (config.target.ip, config.target.port)
         logger.info(f"FuzzingEngine 启动 → {target[0]}:{target[1]}")
@@ -81,6 +82,7 @@ class FuzzingEngine:
             "crashes": 0,
             "t0": time.perf_counter(),
             "last_result": None,   # 最近一条 MutationResult（watchdog 用于关联崩溃）
+            "pcap_packets": [] if pcap_path else None,  # 收集原始字节用于 pcap 保存
         }
 
         bridge.log_message.emit(
@@ -111,6 +113,13 @@ class FuzzingEngine:
                 f"FuzzingEngine 停止：sent={shared['sent']}, "
                 f"crashes={shared['crashes']}, pps={pps:.1f}"
             )
+            if pcap_path and shared.get("pcap_packets"):
+                try:
+                    from someip_fuzzer.utils.pcap import save_pcap
+                    save_pcap(shared["pcap_packets"], pcap_path)
+                    bridge.log_message.emit("INFO", f"pcap 已保存：{pcap_path}")
+                except Exception as exc:
+                    bridge.log_message.emit("ERROR", f"pcap 保存失败：{exc}")
 
     # ── 发包协程 ──────────────────────────────────────────────────────────────
 
@@ -145,12 +154,15 @@ class FuzzingEngine:
                     if result.packet is not None:
                         await transport.send(result.packet)
                         bridge.packet_sent.emit(result.packet)
+                        if shared["pcap_packets"] is not None:
+                            shared["pcap_packets"].append(result.packet)
                     else:
                         await transport.send_raw(result.raw_bytes)
                         try:
-                            bridge.packet_sent.emit(
-                                SomeIpPacket.from_bytes(result.raw_bytes)
-                            )
+                            parsed = SomeIpPacket.from_bytes(result.raw_bytes)
+                            bridge.packet_sent.emit(parsed)
+                            if shared["pcap_packets"] is not None:
+                                shared["pcap_packets"].append(parsed)
                         except Exception:
                             pass
                 except Exception as exc:

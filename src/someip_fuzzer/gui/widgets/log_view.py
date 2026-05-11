@@ -16,12 +16,12 @@ from PyQt6.QtWidgets import (
 _MAX_LINES = 500
 
 _LEVEL_COLORS: dict[str, str] = {
-    "DEBUG":   "#a6adc8",
-    "INFO":    "#cdd6f4",
-    "WARNING": "#f9e2af",
-    "WARN":    "#f9e2af",
-    "ERROR":   "#f38ba8",
-    "CRITICAL":"#f38ba8",
+    "DEBUG":   "#8C959F",
+    "INFO":    "#0969DA",
+    "WARNING": "#9A6700",
+    "WARN":    "#9A6700",
+    "ERROR":   "#CF222E",
+    "CRITICAL":"#CF222E",
 }
 
 
@@ -40,9 +40,9 @@ class LogViewWidget(QWidget):
         layout.setSpacing(2)
 
         bar = QHBoxLayout()
-        bar.addWidget(QLabel("📜  日志"))
+        bar.addWidget(QLabel("日志"))
 
-        self.btn_pause = QPushButton("⏸  暂停")
+        self.btn_pause = QPushButton("暂停")
         self.btn_pause.setCheckable(True)
         self.btn_pause.setFixedWidth(80)
         self.btn_pause.clicked.connect(self._toggle_pause)
@@ -95,7 +95,7 @@ class LogViewWidget(QWidget):
     @pyqtSlot()
     def _toggle_pause(self) -> None:
         self._paused = self.btn_pause.isChecked()
-        self.btn_pause.setText("▶  继续" if self._paused else "⏸  暂停")
+        self.btn_pause.setText("继续" if self._paused else "暂停")
         if not self._paused:
             for level, msg in self._pending:
                 self._write(level, msg)

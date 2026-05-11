@@ -11,6 +11,8 @@ from typing import TYPE_CHECKING
 
 from PyQt6.QtCore import QObject, pyqtSignal, pyqtSlot
 
+from pathlib import Path
+
 from someip_fuzzer.core.engine import FuzzingEngine
 from someip_fuzzer.utils.config import AppConfig
 
@@ -33,6 +35,7 @@ class GuiBridge(QObject):
     def __init__(self, parent: QObject | None = None) -> None:
         super().__init__(parent)
         self._config: AppConfig | None = None
+        self._pcap_path: Path | None = None
         self._running = False
         self._task: asyncio.Task | None = None  # type: ignore[type-arg]
         self._stop_event: asyncio.Event | None = None
@@ -47,6 +50,10 @@ class GuiBridge(QObject):
     def set_config(self, config: AppConfig) -> None:
         """由 MainWindow 在启动前注入当前靶机配置。"""
         self._config = config
+
+    def set_pcap_path(self, path: Path | None) -> None:
+        """由 FuzzerTab 在启动前设置 pcap 保存路径（None = 不保存）。"""
+        self._pcap_path = path
 
     # ── GUI → 核心引擎 ──────────────────────────────────────
 
@@ -65,7 +72,8 @@ class GuiBridge(QObject):
 
         engine = FuzzingEngine()
         self._task = asyncio.ensure_future(
-            engine.run(self._config, self, self._stop_event, self._pause_event)
+            engine.run(self._config, self, self._stop_event, self._pause_event,
+                       pcap_path=self._pcap_path)
         )
         self._task.add_done_callback(self._on_engine_done)
         self.log_message.emit(

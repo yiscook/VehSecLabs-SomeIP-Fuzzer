@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from PyQt6.QtCore import QSettings, QTimer, Qt, pyqtSlot
+from PyQt6.QtCore import QTimer, Qt, pyqtSlot
 from PyQt6.QtGui import QAction, QKeySequence
 from PyQt6.QtWidgets import (
     QFileDialog,
@@ -26,13 +26,6 @@ from someip_fuzzer.gui.tab_results import ResultsTab
 from someip_fuzzer.gui.tab_target import TargetTab
 from someip_fuzzer.gui.widgets.project_tree import ProjectTreeDock
 
-_THEMES = {
-    "深色": "style.qss",
-    "亮色": "style_light.qss",
-}
-_SETTINGS_THEME_KEY = "ui/theme"
-
-
 class _PlaceholderTab(QWidget):
     """尚未实现的 Tab 占位符。"""
 
@@ -40,7 +33,7 @@ class _PlaceholderTab(QWidget):
         super().__init__(parent)
         from PyQt6.QtWidgets import QVBoxLayout
         layout = QVBoxLayout(self)
-        label = QLabel(f"📦  {name}\n\n（Phase 6 / 7 实现）")
+        label = QLabel(f"{name}\n\n（Phase 6 / 7 实现）")
         label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         label.setStyleSheet("font-size: 16px;")
         layout.addWidget(label)
@@ -56,9 +49,9 @@ class MainWindow(QMainWindow):
 
         self.bridge = GuiBridge(self)
         self._stats: dict = {"sent": 0, "crashes": 0, "pps": 0.0}
-        self._settings = QSettings("VehSecLabs", "SomeIPFuzzer")
+        self._connected = False
 
-        self._apply_theme(self._settings.value(_SETTINGS_THEME_KEY, "深色"))
+        self._apply_theme()
         self._setup_tabs()
         self._setup_toolbar()
         self._setup_menu()
@@ -73,13 +66,11 @@ class MainWindow(QMainWindow):
 
     # ── 样式 / 主题 ───────────────────────────────────────────────────────────
 
-    def _apply_theme(self, theme_name: str) -> None:
-        filename = _THEMES.get(theme_name, "style.qss")
-        qss_path = Path(__file__).parent / "resources" / filename
+    def _apply_theme(self) -> None:
+        qss_path = Path(__file__).parent / "resources" / "style.qss"
         if qss_path.exists():
-            self.setStyleSheet(qss_path.read_text(encoding="utf-8"))
-        self._current_theme = theme_name
-        self._settings.setValue(_SETTINGS_THEME_KEY, theme_name)
+            from PyQt6.QtWidgets import QApplication
+            QApplication.instance().setStyleSheet(qss_path.read_text(encoding="utf-8"))
 
     # ── Tab 容器 ──────────────────────────────────────────────────────────────
 
@@ -87,16 +78,16 @@ class MainWindow(QMainWindow):
         self.tab_widget = QTabWidget()
         self.tab_widget.setTabPosition(QTabWidget.TabPosition.North)
 
-        self.tab_target = TargetTab()
+        self.tab_target = TargetTab(bridge=self.bridge)
         self.tab_analysis = AnalysisTab()
         self.tab_fuzzer = FuzzerTab(bridge=self.bridge)
         self.tab_results = ResultsTab()
         self.tab_report = ReportTab()
-        self.tab_widget.addTab(self.tab_target, "🎯  目标配置")
-        self.tab_widget.addTab(self.tab_analysis, "🔍  协议分析")
-        self.tab_widget.addTab(self.tab_fuzzer, "⚡  模糊测试")
-        self.tab_widget.addTab(self.tab_results, "📊  结果分析")
-        self.tab_widget.addTab(self.tab_report, "📄  报告生成")
+        self.tab_widget.addTab(self.tab_target, "目标配置")
+        self.tab_widget.addTab(self.tab_analysis, "协议分析")
+        self.tab_widget.addTab(self.tab_fuzzer, "模糊测试")
+        self.tab_widget.addTab(self.tab_results, "结果分析")
+        self.tab_widget.addTab(self.tab_report, "报告生成")
 
         self.setCentralWidget(self.tab_widget)
 
@@ -107,31 +98,31 @@ class MainWindow(QMainWindow):
         tb.setMovable(False)
         self.addToolBar(tb)
 
-        self._act_start = QAction("▶  启动 F5", self)
+        self._act_start = QAction("启动 (F5)", self)
         self._act_start.triggered.connect(self._on_start_fuzzing)
         tb.addAction(self._act_start)
 
-        self._act_pause = QAction("⏸  暂停 F7", self)
+        self._act_pause = QAction("暂停 (F7)", self)
         self._act_pause.triggered.connect(self.bridge.pause_fuzzing)
         tb.addAction(self._act_pause)
 
-        self._act_stop = QAction("⏹  停止 F8", self)
+        self._act_stop = QAction("停止 (F8)", self)
         self._act_stop.triggered.connect(self.bridge.stop_fuzzing)
         tb.addAction(self._act_stop)
 
         tb.addSeparator()
 
-        act_import = QAction("📥  导入", self)
+        act_import = QAction("导入配置", self)
         act_import.triggered.connect(self._action_import)
         tb.addAction(act_import)
 
-        act_export = QAction("📤  导出", self)
+        act_export = QAction("导出配置", self)
         act_export.triggered.connect(self._action_export)
         tb.addAction(act_export)
 
         tb.addSeparator()
 
-        act_report = QAction("📊  报告", self)
+        act_report = QAction("报告", self)
         act_report.triggered.connect(lambda: self.tab_widget.setCurrentIndex(4))
         tb.addAction(act_report)
 
@@ -154,15 +145,6 @@ class MainWindow(QMainWindow):
         m_view.addAction("模糊测试", lambda: self.tab_widget.setCurrentIndex(2))
         m_view.addAction("结果分析", lambda: self.tab_widget.setCurrentIndex(3))
         m_view.addAction("报告生成", lambda: self.tab_widget.setCurrentIndex(4))
-        m_view.addSeparator()
-        m_theme = m_view.addMenu("主题")
-        for theme_name in _THEMES:
-            act = QAction(theme_name, self, checkable=True)
-            act.setChecked(theme_name == self._current_theme)
-            act.triggered.connect(lambda checked, n=theme_name: self._switch_theme(n))
-            m_theme.addAction(act)
-        self._theme_menu = m_theme
-
         # 工具
         m_tools = mb.addMenu("工具(&T)")
         m_tools.addAction("启动模糊测试 (F5)", self._on_start_fuzzing)
@@ -178,11 +160,16 @@ class MainWindow(QMainWindow):
         sb = QStatusBar()
         self.setStatusBar(sb)
 
-        self._lbl_target = QLabel("🔴  未连接")
+        self._lbl_target = QLabel("未连接")
+        self._lbl_target.setObjectName("status_target")
         self._lbl_sent = QLabel("已发送: 0")
+        self._lbl_sent.setObjectName("status_sent")
         self._lbl_crashes = QLabel("崩溃: 0")
+        self._lbl_crashes.setObjectName("status_crashes")
         self._lbl_pps = QLabel("速率: 0 pps")
+        self._lbl_pps.setObjectName("status_pps")
         self._lbl_clock = QLabel("00:00:00")
+        self._lbl_clock.setObjectName("status_clock")
 
         for lbl in (self._lbl_target, self._lbl_sent, self._lbl_crashes, self._lbl_pps, self._lbl_clock):
             sb.addPermanentWidget(lbl)
@@ -193,6 +180,7 @@ class MainWindow(QMainWindow):
     def _setup_dock(self) -> None:
         self.project_tree = ProjectTreeDock(self)
         self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.project_tree)
+        self.project_tree.hide()  # Phase 9 实现会话持久化后再启用
 
     # ── 信号桥 ────────────────────────────────────────────────────────────────
 
@@ -222,6 +210,12 @@ class MainWindow(QMainWindow):
 
     @pyqtSlot()
     def _on_start_fuzzing(self) -> None:
+        if not self._connected:
+            QMessageBox.warning(
+                self, "未连接",
+                "请先在「目标配置」Tab 完成连通性测试，确认靶机可达后再启动模糊测试。"
+            )
+            return
         cfg = self.tab_target.build_config_obj()
         self.bridge.set_config(cfg)
         self.bridge.start_fuzzing()
@@ -248,21 +242,16 @@ class MainWindow(QMainWindow):
 
     @pyqtSlot(bool, str)
     def _on_connectivity_result(self, ok: bool, target: str) -> None:
+        self._connected = ok
         if ok:
-            self._lbl_target.setText(f"🟢  {target}")
+            self._lbl_target.setText(f"已连接  {target}")
         else:
-            self._lbl_target.setText("🔴  未连接")
+            self._lbl_target.setText("未连接")
 
     @pyqtSlot()
     def _update_clock(self) -> None:
         from datetime import datetime
         self._lbl_clock.setText(datetime.now().strftime("%H:%M:%S"))
-
-    def _switch_theme(self, theme_name: str) -> None:
-        self._apply_theme(theme_name)
-        # 更新菜单勾选状态
-        for act in self._theme_menu.actions():
-            act.setChecked(act.text() == theme_name)
 
     def _action_import(self) -> None:
         path_str, _ = QFileDialog.getOpenFileName(
@@ -289,11 +278,7 @@ class MainWindow(QMainWindow):
     def _show_about(self) -> None:
         AboutDialog(self).exec()
 
-    def current_theme(self) -> str:
-        return self._current_theme
-
-
 def _separator() -> QLabel:
     sep = QLabel(" │ ")
-    sep.setStyleSheet("color: #45475a;")
+    sep.setStyleSheet("color: #D0D7DE;")
     return sep

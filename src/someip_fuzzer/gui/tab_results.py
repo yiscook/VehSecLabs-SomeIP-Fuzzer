@@ -64,7 +64,7 @@ class ResultsTab(QWidget):
         # 过滤工具栏
         filter_bar = QHBoxLayout()
         self.edit_search = QLineEdit()
-        self.edit_search.setPlaceholderText("🔍 搜索策略名…")
+        self.edit_search.setPlaceholderText("搜索策略名…")
         self.edit_search.textChanged.connect(self._apply_filter)
         filter_bar.addWidget(self.edit_search)
 
@@ -75,7 +75,7 @@ class ResultsTab(QWidget):
         layout.addLayout(filter_bar)
 
         # 崩溃列表
-        grp_list = QGroupBox("💥  崩溃记录")
+        grp_list = QGroupBox("崩溃记录")
         list_layout = QVBoxLayout(grp_list)
         list_layout.setContentsMargins(4, 4, 4, 4)
         self.crash_list = CrashListWidget()
@@ -84,12 +84,12 @@ class ResultsTab(QWidget):
         layout.addWidget(grp_list, stretch=1)
 
         # 刷新按钮
-        self.btn_refresh = QPushButton("🔄  刷新")
+        self.btn_refresh = QPushButton("刷新")
         self.btn_refresh.clicked.connect(self.refresh)
         layout.addWidget(self.btn_refresh)
 
         # 统计仪表盘
-        grp_dash = QGroupBox("📊  统计")
+        grp_dash = QGroupBox("统计")
         dash_layout = QVBoxLayout(grp_dash)
         dash_layout.setContentsMargins(4, 4, 4, 4)
         self.dashboard = DashboardWidget()
@@ -120,7 +120,7 @@ class ResultsTab(QWidget):
         inner_layout.setContentsMargins(0, 0, 0, 0)
         inner_layout.setSpacing(6)
 
-        grp_tree = QGroupBox("📋  字段树")
+        grp_tree = QGroupBox("字段树")
         tree_layout = QVBoxLayout(grp_tree)
         tree_layout.setContentsMargins(4, 4, 4, 4)
         self.packet_tree = PacketTreeWidget()
@@ -128,7 +128,7 @@ class ResultsTab(QWidget):
         tree_layout.addWidget(self.packet_tree)
         inner_layout.addWidget(grp_tree)
 
-        grp_hex = QGroupBox("🔢  原始字节（触发报文）")
+        grp_hex = QGroupBox("原始字节（触发报文）")
         hex_layout = QVBoxLayout(grp_hex)
         hex_layout.setContentsMargins(4, 4, 4, 4)
         self.hex_view = HexView()
@@ -145,11 +145,11 @@ class ResultsTab(QWidget):
 
         # 操作按钮
         btn_bar = QHBoxLayout()
-        self.btn_replay = QPushButton("▶  重放")
+        self.btn_replay = QPushButton("重放")
         self.btn_replay.clicked.connect(self._replay)
-        self.btn_export = QPushButton("📥  导出脚本")
+        self.btn_export = QPushButton("导出脚本")
         self.btn_export.clicked.connect(self._export_script)
-        self.btn_copy = QPushButton("📋  复制 Hex")
+        self.btn_copy = QPushButton("复制 Hex")
         self.btn_copy.clicked.connect(self._copy_hex)
         btn_bar.addWidget(self.btn_replay)
         btn_bar.addWidget(self.btn_export)
@@ -164,9 +164,9 @@ class ResultsTab(QWidget):
     @pyqtSlot(object)
     def _on_crash_selected(self, rec: CrashRecord) -> None:
         self._current_crash = rec
-        severity_emoji = {"critical": "🔴", "high": "🟠", "medium": "🟡", "low": "🟢"}.get(rec.severity, "⚪")
+        severity_label = {"critical": "[CRITICAL]", "high": "[HIGH]", "medium": "[MEDIUM]", "low": "[LOW]"}.get(rec.severity, "[?]")
         self.lbl_info.setText(
-            f"{severity_emoji} <b>{rec.crash_id[:8]}…</b>  CVSS {rec.cvss_score:.1f}  |  "
+            f"{severity_label} <b>{rec.crash_id[:8]}…</b>  CVSS {rec.cvss_score:.1f}  |  "
             f"{rec.timestamp[:19].replace('T', ' ')}  |  策略：{rec.mutator_name}  |  "
             f"检测：{rec.detection_method}  |  "
             f"靶机：{rec.target_addr[0]}:{rec.target_addr[1]}"

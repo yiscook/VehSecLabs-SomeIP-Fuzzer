@@ -17,7 +17,7 @@ from enum import Enum
 from typing import Any
 
 from PyQt6.QtCore import QAbstractTableModel, QModelIndex, QObject, QTimer, Qt, pyqtSlot
-from PyQt6.QtGui import QColor
+from PyQt6.QtGui import QBrush, QColor
 from PyQt6.QtWidgets import (
     QAbstractItemView,
     QCheckBox,
@@ -35,17 +35,17 @@ from someip_fuzzer.gui.widgets.packet_table import PacketRow
 
 
 class PacketStatus(Enum):
-    SENT = "→"
-    OK = "←✓"
-    TIMEOUT = "←⏱"
-    CRASH = "💥"
+    SENT = "发送"
+    OK = "正常"
+    TIMEOUT = "超时"
+    CRASH = "崩溃"
 
 
 _COLOR_MAP = {
-    PacketStatus.SENT:    QColor("#89b4fa"),   # 蓝
-    PacketStatus.OK:      QColor("#a6e3a1"),   # 绿
-    PacketStatus.TIMEOUT: QColor("#f9e2af"),   # 黄
-    PacketStatus.CRASH:   QColor("#f38ba8"),   # 红
+    PacketStatus.SENT:    QBrush(QColor("#DBEAFE")),  # 淡蓝
+    PacketStatus.OK:      QBrush(QColor("#DCFCE7")),  # 淡绿
+    PacketStatus.TIMEOUT: QBrush(QColor("#FEF9C3")),  # 淡黄
+    PacketStatus.CRASH:   QBrush(QColor("#FEE2E2")),  # 淡红
 }
 
 _COLUMNS = ["#", "时间", "方向", "Service ID", "Method ID", "长度", "状态"]
@@ -124,10 +124,16 @@ class PacketStreamModel(QAbstractTableModel):
     def append_batch(self, rows: list[StreamRow]) -> None:
         if not rows:
             return
-        start = len(self._buf)
-        self.beginInsertRows(QModelIndex(), start, start + len(rows) - 1)
+        n_before = len(self._buf)
         self._buf.extend(rows)
-        self.endInsertRows()
+        n_after = len(self._buf)
+        if n_before == self._buf.maxlen:
+            # deque 已满，旧条目被淘汰，总行数不变 — 用 resetModel 避免行计数失步
+            self.beginResetModel()
+            self.endResetModel()
+        else:
+            self.beginInsertRows(QModelIndex(), n_before, n_after - 1)
+            self.endInsertRows()
 
     def make_row(self, status: PacketStatus, service_id: int, method_id: int,
                  length: int, raw: bytes = b"") -> StreamRow:
@@ -203,7 +209,7 @@ class PacketStreamWidget(QWidget):
 
         # 工具栏
         bar = QHBoxLayout()
-        self.btn_pause = QPushButton("⏸  暂停显示")
+        self.btn_pause = QPushButton("暂停显示")
         self.btn_pause.setCheckable(True)
         self.btn_pause.clicked.connect(self._toggle_pause)
         bar.addWidget(self.btn_pause)
@@ -245,7 +251,7 @@ class PacketStreamWidget(QWidget):
     @pyqtSlot()
     def _toggle_pause(self) -> None:
         self._paused = self.btn_pause.isChecked()
-        self.btn_pause.setText("▶  继续显示" if self._paused else "⏸  暂停显示")
+        self.btn_pause.setText("继续显示" if self._paused else "暂停显示")
 
     def _on_autoscroll_toggled(self, checked: bool) -> None:
         self._auto_scroll = checked

@@ -100,7 +100,7 @@ class CvssCalculatorWidget(QWidget):
         outer.setContentsMargins(0, 0, 0, 0)
         outer.setSpacing(6)
 
-        grp = QGroupBox("🎛  CVSS 3.1 计算器")
+        grp = QGroupBox("CVSS 3.1 计算器")
         form = QFormLayout(grp)
         form.setSpacing(4)
 

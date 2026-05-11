@@ -23,7 +23,7 @@ class StateViewWidget(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(4)
 
-        layout.addWidget(QLabel("🔄  服务状态机"))
+        layout.addWidget(QLabel("服务状态机"))
 
         self._text = QPlainTextEdit()
         self._text.setReadOnly(True)
@@ -35,7 +35,7 @@ class StateViewWidget(QWidget):
         layout.addWidget(self._text)
 
         self._lbl_current = QLabel("当前状态：—")
-        self._lbl_current.setStyleSheet("font-weight: bold; color: #a6e3a1;")
+        self._lbl_current.setStyleSheet("font-weight: bold; color: #1A7F37;")
         layout.addWidget(self._lbl_current)
 
     def update_mermaid(self, mermaid_str: str) -> None:

@@ -74,7 +74,7 @@ class AnalysisTab(QWidget):
 
         layout.addWidget(QLabel("抓包源："))
         self.cmb_source = QComboBox()
-        self.cmb_source.addItem("📄  加载 pcap 文件", userData="file")
+        self.cmb_source.addItem("加载 pcap 文件", userData="file")
         self._load_interfaces()
         self.cmb_source.setMinimumWidth(240)
         layout.addWidget(self.cmb_source)
@@ -85,7 +85,7 @@ class AnalysisTab(QWidget):
         self.edit_bpf.setMinimumWidth(220)
         layout.addWidget(self.edit_bpf)
 
-        self.btn_open_file = QPushButton("📂  打开 pcap")
+        self.btn_open_file = QPushButton("打开 pcap")
         self.btn_open_file.clicked.connect(self._open_pcap)
         layout.addWidget(self.btn_open_file)
 
@@ -95,7 +95,7 @@ class AnalysisTab(QWidget):
         return bar
 
     def _build_packet_list(self) -> QWidget:
-        grp = QGroupBox("📋  报文列表")
+        grp = QGroupBox("报文列表")
         layout = QVBoxLayout(grp)
         layout.setContentsMargins(4, 4, 4, 4)
 
@@ -113,7 +113,7 @@ class AnalysisTab(QWidget):
         return grp
 
     def _build_detail_panel(self) -> QWidget:
-        grp = QGroupBox("🔍  字段详情")
+        grp = QGroupBox("字段详情")
         layout = QVBoxLayout(grp)
         layout.setContentsMargins(4, 4, 4, 4)
         self.packet_tree = PacketTreeWidget()
@@ -122,7 +122,7 @@ class AnalysisTab(QWidget):
         return grp
 
     def _build_hex_panel(self) -> QWidget:
-        grp = QGroupBox("🔢  原始字节")
+        grp = QGroupBox("原始字节")
         layout = QVBoxLayout(grp)
         layout.setContentsMargins(4, 4, 4, 4)
         self.hex_view = HexView()
@@ -135,15 +135,15 @@ class AnalysisTab(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(8)
 
-        self.btn_add_corpus = QPushButton("➕  加入 corpus")
+        self.btn_add_corpus = QPushButton("加入 corpus")
         self.btn_add_corpus.clicked.connect(self._add_to_corpus)
         layout.addWidget(self.btn_add_corpus)
 
-        self.btn_export_pcap = QPushButton("📤  导出 pcap")
+        self.btn_export_pcap = QPushButton("导出 pcap")
         self.btn_export_pcap.clicked.connect(self._export_pcap)
         layout.addWidget(self.btn_export_pcap)
 
-        self.btn_clear = QPushButton("🗑  清空")
+        self.btn_clear = QPushButton("清空")
         self.btn_clear.clicked.connect(self._clear)
         layout.addWidget(self.btn_clear)
 
@@ -163,7 +163,7 @@ class AnalysisTab(QWidget):
         try:
             for name, addr_list in psutil.net_if_addrs().items():
                 ipv4 = [a.address for a in addr_list if a.family == socket.AF_INET]
-                label = f"🔌  {name}  ({ipv4[0]})" if ipv4 else f"🔌  {name}"
+                label = f"{name}  ({ipv4[0]})" if ipv4 else name
                 self.cmb_source.addItem(label, userData=name)
         except Exception:
             pass

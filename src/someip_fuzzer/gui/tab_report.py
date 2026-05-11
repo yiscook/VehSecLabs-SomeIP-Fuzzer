@@ -59,7 +59,7 @@ class ReportTab(QWidget):
         layout.setSpacing(8)
 
         # 报告类型
-        grp_type = QGroupBox("📋  报告类型")
+        grp_type = QGroupBox("报告类型")
         type_layout = QVBoxLayout(grp_type)
         self.radio_full   = QRadioButton("完整测试报告")
         self.radio_vuln   = QRadioButton("漏洞披露报告")
@@ -70,7 +70,7 @@ class ReportTab(QWidget):
         layout.addWidget(grp_type)
 
         # 时间范围
-        grp_date = QGroupBox("📅  时间范围")
+        grp_date = QGroupBox("时间范围")
         date_layout = QVBoxLayout(grp_date)
         row_from = QHBoxLayout()
         row_from.addWidget(QLabel("起："))
@@ -89,7 +89,7 @@ class ReportTab(QWidget):
         layout.addWidget(grp_date)
 
         # 章节勾选
-        grp_sec = QGroupBox("✅  包含章节")
+        grp_sec = QGroupBox("包含章节")
         sec_layout = QVBoxLayout(grp_sec)
         self.chk_method = QCheckBox("测试方法")
         self.chk_method.setChecked(True)
@@ -108,7 +108,7 @@ class ReportTab(QWidget):
         layout.addWidget(grp_sec)
 
         # 自定义信息
-        grp_custom = QGroupBox("🎨  自定义")
+        grp_custom = QGroupBox("自定义")
         custom_layout = QVBoxLayout(grp_custom)
         custom_layout.addWidget(QLabel("公司名称："))
         self.edit_company = QLineEdit("VehSecLabs")
@@ -122,13 +122,13 @@ class ReportTab(QWidget):
         layout.addWidget(grp_custom)
 
         # 操作按钮
-        self.btn_preview = QPushButton("🔄  刷新预览")
+        self.btn_preview = QPushButton("刷新预览")
         self.btn_preview.clicked.connect(self._refresh_preview)
         layout.addWidget(self.btn_preview)
 
-        self.btn_pdf  = QPushButton("📄  导出 PDF")
-        self.btn_html = QPushButton("🌐  导出 HTML")
-        self.btn_docx = QPushButton("📝  导出 DOCX")
+        self.btn_pdf  = QPushButton("导出 PDF")
+        self.btn_html = QPushButton("导出 HTML")
+        self.btn_docx = QPushButton("导出 DOCX")
         self.btn_pdf.clicked.connect(lambda: self._export("pdf"))
         self.btn_html.clicked.connect(lambda: self._export("html"))
         self.btn_docx.clicked.connect(lambda: self._export("docx"))
@@ -145,7 +145,7 @@ class ReportTab(QWidget):
         layout = QVBoxLayout(panel)
         layout.setContentsMargins(0, 0, 0, 0)
 
-        grp = QGroupBox("📄  报告预览")
+        grp = QGroupBox("报告预览")
         grp_layout = QVBoxLayout(grp)
         grp_layout.setContentsMargins(4, 4, 4, 4)
         self.preview = QTextBrowser()

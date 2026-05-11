@@ -25,14 +25,14 @@ class DashboardWidget(QWidget):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(4)
-        layout.addWidget(QLabel("📊  崩溃统计"))
+        layout.addWidget(QLabel("崩溃统计"))
 
         if not _PG:
             layout.addWidget(QLabel("（需安装 pyqtgraph）"))
             return
 
-        pg.setConfigOption("background", "#1e1e2e")
-        pg.setConfigOption("foreground", "#cdd6f4")
+        pg.setConfigOption("background", "#FFFFFF")
+        pg.setConfigOption("foreground", "#1A2332")
 
         self._win = pg.GraphicsLayoutWidget()
         self._win.setMinimumHeight(240)
