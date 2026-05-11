@@ -125,8 +125,9 @@ git checkout -b phase-N vN.N.0 && git push origin phase-N && git checkout master
 | 0–4（协议核心、变异、状态机、反馈） | ✅ Complete | v0.4.0 |
 | 5（GUI 框架 + Tab 1 目标配置 + 双主题） | ✅ Complete | v0.5.0 |
 | 6（Tab 2 协议分析 + Tab 3 模糊测试） | ✅ Complete | v0.6.0 |
-| 7（Tab 4 结果分析 + Tab 5 报告生成） | ⬜ Next | — |
-| 8–9 | ⬜ Not Started | — |
+| 7（Tab 4 结果分析 + Tab 5 报告生成） | ✅ Complete | v0.7.0 |
+| 8（vsomeip 靶机集成 + FuzzingEngine + E2E 测试） | 🔄 In Progress | — |
+| 9 | ⬜ Not Started | — |
 
 **Phase 4 遗留项（延至 Phase 8）：** 在 vsomeip 已知漏洞版本上实测自动发现崩溃（需 VM 靶机）。
 

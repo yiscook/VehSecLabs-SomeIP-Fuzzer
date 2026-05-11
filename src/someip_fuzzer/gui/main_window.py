@@ -108,7 +108,7 @@ class MainWindow(QMainWindow):
         self.addToolBar(tb)
 
         self._act_start = QAction("▶  启动 F5", self)
-        self._act_start.triggered.connect(self.bridge.start_fuzzing)
+        self._act_start.triggered.connect(self._on_start_fuzzing)
         tb.addAction(self._act_start)
 
         self._act_pause = QAction("⏸  暂停 F7", self)
@@ -165,7 +165,7 @@ class MainWindow(QMainWindow):
 
         # 工具
         m_tools = mb.addMenu("工具(&T)")
-        m_tools.addAction("启动模糊测试 (F5)", self.bridge.start_fuzzing)
+        m_tools.addAction("启动模糊测试 (F5)", self._on_start_fuzzing)
         m_tools.addAction("停止模糊测试 (F8)", self.bridge.stop_fuzzing)
 
         # 帮助
@@ -205,7 +205,7 @@ class MainWindow(QMainWindow):
 
     def _setup_shortcuts(self) -> None:
         shortcuts = [
-            ("F5", self.bridge.start_fuzzing),
+            ("F5", self._on_start_fuzzing),
             ("F7", self.bridge.pause_fuzzing),
             ("F8", self.bridge.stop_fuzzing),
             ("Ctrl+S", self._action_export),
@@ -216,6 +216,14 @@ class MainWindow(QMainWindow):
             act.setShortcut(QKeySequence(key))
             act.triggered.connect(slot)
             self.addAction(act)
+
+    # ── 启动入口（从 Tab 1 读取配置再启动引擎） ──────────────────────────────
+
+    @pyqtSlot()
+    def _on_start_fuzzing(self) -> None:
+        cfg = self.tab_target.build_config_obj()
+        self.bridge.set_config(cfg)
+        self.bridge.start_fuzzing()
 
     # ── 槽函数 ────────────────────────────────────────────────────────────────
 

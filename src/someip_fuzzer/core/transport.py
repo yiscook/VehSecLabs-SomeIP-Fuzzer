@@ -65,6 +65,16 @@ class SomeIpUdpTransport:
         if self.on_sent:
             self.on_sent(packet)
 
+    async def send_raw(self, raw: bytes, addr: tuple[str, int] | None = None) -> None:
+        """发送原始字节流（畸形变异专用），不触发 on_sent 回调。"""
+        target = addr or self._remote_addr
+        if target is None:
+            raise ValueError("No remote address specified")
+        if self._transport is None:
+            raise RuntimeError("Transport not started")
+        self._transport.sendto(raw, target)
+
+
     async def recv(self, timeout: float = 2.0) -> SomeIpPacket | None:
         """接收一个报文，超时返回 None。"""
         try:

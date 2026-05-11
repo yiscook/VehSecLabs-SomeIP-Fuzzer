@@ -88,7 +88,17 @@ def test_stop_clears_running(tab):
     assert tab.is_running() is False
 
 
-def test_start_emits_bridge_signal(tab, bridge):
+def test_start_emits_bridge_signal(tab, bridge, monkeypatch):
+    from unittest.mock import MagicMock
+    from someip_fuzzer.utils.config import AppConfig, TargetConfig
+
+    bridge.set_config(AppConfig(target=TargetConfig(ip="127.0.0.1", port=30509)))
+    mock_task = MagicMock()
+    mock_task.cancelled.return_value = False
+    mock_task.exception.return_value = None
+    monkeypatch.setattr("someip_fuzzer.gui.bridge.asyncio.ensure_future",
+                        lambda *a, **kw: mock_task)
+
     received = []
     bridge.log_message.connect(lambda lvl, msg: received.append(msg))
     tab.start_fuzzing()

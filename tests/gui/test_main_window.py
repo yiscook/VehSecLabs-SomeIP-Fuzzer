@@ -45,10 +45,33 @@ def test_bridge_not_running_initially(window):
     assert window.bridge.is_running is False
 
 
-def test_bridge_start_stop(window):
+def test_bridge_start_requires_config(window):
+    """未设置 config 时 start_fuzzing 不应进入 running 状态。"""
+    window.bridge.start_fuzzing()
+    assert window.bridge.is_running is False
+
+
+def test_bridge_start_stop(window, monkeypatch):
+    """设置 config 后 start_fuzzing → is_running=True；stop 后重置。"""
+    from unittest.mock import MagicMock
+    from someip_fuzzer.utils.config import AppConfig, TargetConfig
+
+    # 注入最小配置
+    cfg = AppConfig(target=TargetConfig(ip="127.0.0.1", port=30509))
+    window.bridge.set_config(cfg)
+
+    # Mock asyncio.ensure_future 避免实际创建异步任务
+    mock_task = MagicMock()
+    mock_task.cancelled.return_value = False
+    mock_task.exception.return_value = None
+    monkeypatch.setattr("someip_fuzzer.gui.bridge.asyncio.ensure_future",
+                        lambda *a, **kw: mock_task)
+
     window.bridge.start_fuzzing()
     assert window.bridge.is_running is True
-    window.bridge.stop_fuzzing()
+
+    # 模拟 engine 完成回调
+    window.bridge._on_engine_done(mock_task)
     assert window.bridge.is_running is False
 
 

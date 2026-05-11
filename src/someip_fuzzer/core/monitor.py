@@ -243,7 +243,9 @@ class CrashDetector:
                 "service_id": pkt.service_id,
                 "method_id": pkt.method_id,
                 "session_id": pkt.session_id,
-                "message_type": pkt.message_type.name,
+                "message_type": (pkt.message_type.name
+                                 if hasattr(pkt.message_type, "name")
+                                 else f"0x{int(pkt.message_type):02X}"),
             }
 
         return CrashRecord(
