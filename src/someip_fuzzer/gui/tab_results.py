@@ -107,7 +107,7 @@ class ResultsTab(QWidget):
         layout.setSpacing(6)
 
         # 摘要信息
-        self.lbl_info = QLabel("← 请在左侧选择一条崩溃记录")
+        self.lbl_info = QLabel("请在左侧选择一条崩溃记录")
         self.lbl_info.setWordWrap(True)
         self.lbl_info.setStyleSheet("font-size: 11pt; padding: 8px;")
         layout.addWidget(self.lbl_info)

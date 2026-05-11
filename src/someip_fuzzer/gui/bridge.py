@@ -119,4 +119,4 @@ class GuiBridge(QObject):
         exc = task.exception()
         if exc:
             self.log_message.emit("ERROR", f"引擎异常退出：{exc}")
-        self.log_message.emit("INFO", "⏹ 模糊测试已停止")
+        self.log_message.emit("INFO", "模糊测试已停止")
