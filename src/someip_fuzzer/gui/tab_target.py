@@ -38,15 +38,15 @@ _DEFAULT_TEMPLATES: dict[str, AppConfig] = {
     "vsomeip 默认": AppConfig(
         target=TargetConfig(
             name="vsomeip 默认靶机",
-            ip="192.168.81.128",
+            ip="192.168.81.129",
             port=30509,
             transport="udp",
-            interface="",
+            interface="VMnet8",
         ),
         sd=SdConfig(multicast="224.224.224.245", port=30490),
         services=[
-            ServiceDef(service_id=0x1234, instance_id=0x0001, major_version=1, minor_version=0,
-                       methods=[0x8001, 0x8002], events=[0x0100]),
+            ServiceDef(service_id=0x1111, instance_id=0x2222, major_version=0, minor_version=0,
+                       methods=[0x3333], events=[]),
         ],
     ),
     "空模板": AppConfig(),

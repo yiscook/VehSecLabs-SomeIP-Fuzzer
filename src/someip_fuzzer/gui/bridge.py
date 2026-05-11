@@ -72,6 +72,9 @@ class GuiBridge(QObject):
             "INFO",
             f"▶ 模糊测试已启动 → {self._config.target.ip}:{self._config.target.port}",
         )
+        self.connectivity_result.emit(
+            True, f"{self._config.target.ip}:{self._config.target.port}"
+        )
 
     @pyqtSlot()
     def stop_fuzzing(self) -> None:
@@ -101,6 +104,7 @@ class GuiBridge(QObject):
 
     def _on_engine_done(self, task: asyncio.Task) -> None:  # type: ignore[type-arg]
         self._running = False
+        self.connectivity_result.emit(False, "")
         if task.cancelled():
             self.log_message.emit("INFO", "⏹ 模糊测试已取消")
             return

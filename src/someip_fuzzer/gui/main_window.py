@@ -200,6 +200,7 @@ class MainWindow(QMainWindow):
         self.bridge.stats_updated.connect(self._on_stats_updated)
         self.bridge.log_message.connect(self._on_log_message)
         self.bridge.crash_detected.connect(self._on_crash_detected)
+        self.bridge.connectivity_result.connect(self._on_connectivity_result)
 
     # ── 全局快捷键 ────────────────────────────────────────────────────────────
 
@@ -244,6 +245,13 @@ class MainWindow(QMainWindow):
         self._stats["crashes"] = crashes
         self._lbl_crashes.setText(f"崩溃: {crashes}")
         self.statusBar().showMessage(f"⚠️  检测到崩溃！{info}", 8000)
+
+    @pyqtSlot(bool, str)
+    def _on_connectivity_result(self, ok: bool, target: str) -> None:
+        if ok:
+            self._lbl_target.setText(f"🟢  {target}")
+        else:
+            self._lbl_target.setText("🔴  未连接")
 
     @pyqtSlot()
     def _update_clock(self) -> None:
