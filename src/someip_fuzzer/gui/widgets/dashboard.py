@@ -27,8 +27,14 @@ class DashboardWidget(QWidget):
         layout.setSpacing(4)
         layout.addWidget(QLabel("崩溃统计"))
 
+        # 摘要标签必须无条件创建，refresh() 会访问它
+        self.lbl_summary = QLabel("暂无数据")
+        self.lbl_summary.setStyleSheet("font-size: 10pt; color: #57606A;")
+        self.lbl_summary.setWordWrap(True)
+
         if not _PG:
             layout.addWidget(QLabel("（需安装 pyqtgraph）"))
+            layout.addWidget(self.lbl_summary)
             return
 
         pg.setConfigOption("background", "#FFFFFF")
@@ -40,7 +46,7 @@ class DashboardWidget(QWidget):
         # 上：Layer 分布
         self._plot_layer = self._win.addPlot(title="按 Layer 分布")
         self._plot_layer.setLabel("left", "崩溃数")
-        self._bars_layer = pg.BarGraphItem(x=[], height=[], width=0.6, brush="#89b4fa")
+        self._bars_layer = pg.BarGraphItem(x=[], height=[], width=0.6, brush="#0969DA")
         self._plot_layer.addItem(self._bars_layer)
         self._plot_layer.getAxis("bottom").setTicks([])
 
@@ -49,16 +55,11 @@ class DashboardWidget(QWidget):
         # 下：高频字段 Top 5
         self._plot_field = self._win.addPlot(title="高频触发字段 Top 5")
         self._plot_field.setLabel("left", "次数")
-        self._bars_field = pg.BarGraphItem(x=[], height=[], width=0.6, brush="#f38ba8")
+        self._bars_field = pg.BarGraphItem(x=[], height=[], width=0.6, brush="#CF222E")
         self._plot_field.addItem(self._bars_field)
         self._plot_field.getAxis("bottom").setTicks([])
 
         layout.addWidget(self._win)
-
-        # 数字摘要标签
-        self.lbl_summary = QLabel("暂无数据")
-        self.lbl_summary.setStyleSheet("font-size: 10pt; color: #a6adc8;")
-        self.lbl_summary.setWordWrap(True)
         layout.addWidget(self.lbl_summary)
 
     def refresh(self, crashes: list[CrashRecord]) -> None:
